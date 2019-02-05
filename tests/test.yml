@@ -1,0 +1,49 @@
+---
+
+- name: create nextcloud pod
+  hosts: localhost
+  connection: local
+  # delegate_to: localhost
+
+  tasks:
+  - name: create test dir for www file
+    file:
+      dest: /tmp/podman-container-systemd
+      state: directory
+
+  - name: create test www file
+    copy:
+      dest: /tmp/podman-container-systemd/index.html
+      content: "Hello world!\n"
+
+  - name: tests container
+    vars:
+      container_name: lighttpd
+      container_run_args: >
+        --rm
+        -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
+        -p 8080:80
+        sebp/lighttpd:latest
+      #state: absent
+      state: running
+    import_role:
+      name: podman-container-systemd
+
+  - name: test if container runs
+    command: curl -s http://localhost:8080
+    register: curl
+    when: state == "running"
+
+  - name: test if container runs
+    get_url:
+      url: http://localhost:8080
+      dest: /tmp/podman-container-systemd/index.return.html
+    register: get_url
+    when: state == "running"
+
+  - debug:
+      msg:
+        - "get http://localhost:8080 to test if it worked!"
+        - "this sould state 'file' on success: {{ get_url.state }}"
+        - "output should say 'Hello world!' here: {{ curl.stdout }}"
+    when: state == "running"

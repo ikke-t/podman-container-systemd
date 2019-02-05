@@ -1,0 +1,76 @@
+---
+
+- name: ensure podman is installed
+  package:
+    name: podman
+    state: installed
+  when: skip_podman_install != true
+
+- name: check if service file exists already
+  stat:
+    path: "{{ service_files_dir }}/{{ service_name }}"
+  register: service_file_before_template
+
+- name: create systemd service file for {{ container_name }}
+  template:
+    src: systemd-service.j2
+    dest: "{{ service_files_dir }}/{{ service_name }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload systemctl
+  register: service_file
+  when: state == "running"
+
+- name: reload systemd to notice new service file
+  command: systemctl daemon-reload
+  when: service_file.changed
+
+- name: ensure "{{ service_name }}" is enabled at boot
+  service:
+    name: "{{ service_name }}"
+    enabled: true
+  when: state == "running"
+
+- name: ensure "{{ service_name }}" is disabled at boot
+  service:
+    name: "{{ service_name }}"
+    enabled: false
+  when:
+    - service_file_before_template.stat.exists == true
+    - state == "absent"
+
+- name: ensure "{{ service_name }}" is running
+  service:
+    name: "{{ service_name }}"
+    state: started
+    enabled: yes
+  when:
+    - state == "running"
+    - service_file_before_template.stat.exists == false
+
+- name: ensure "{{ service_name }}" is restarted due config change
+  service:
+    name: "{{ service_name }}"
+    state: restarted
+    enabled: yes
+  when:
+    - service_file_before_template.stat.exists == true
+    - service_file.changed
+    - state == "running"
+
+- name: ensure "{{ service_name }}" is stopped
+  service:
+    name: "{{ service_name }}"
+    state: stopped
+    enabled: no
+  when:
+    - service_file_before_template.stat.exists == true
+    - state == "absent"
+
+- name: clean up systemd service file
+  file:
+    path: "{{ service_files_dir }}/{{ service_name }}"
+    state: absent
+  notify: reload systemctl
+  when: state == "absent"

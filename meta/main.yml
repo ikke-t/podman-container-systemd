@@ -1,0 +1,16 @@
+galaxy_info:
+  author: Ilkka Tengvall
+  description: Solutions Architect
+  company: Red Hat
+  license: GPLv3
+  min_ansible_version: 2.4
+  platforms:
+  - name: Fedora
+    versions:
+    - all
+  galaxy_tags:
+  - podman
+  - container
+  - systemd
+
+dependencies: []

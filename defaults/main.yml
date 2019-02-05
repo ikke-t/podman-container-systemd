@@ -1,0 +1,18 @@
+---
+
+# state can be running or absent
+state: running
+
+# systemd service name
+service_name: "{{ container_name }}-container-pod.service"
+
+# SystemD restart policy
+# see man systemd.service for info
+# by default we want to restart failed container
+container_restart: on-failure
+service_files_dir: /etc/systemd/system
+systemd_TimeoutStartSec: 2
+systemd_RestartSec: 30
+
+# to sepped up you can disable always checking if podman is installed.
+skip_podman_install: true
