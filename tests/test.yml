@@ -1,6 +1,6 @@
 ---
 
-- name: create nextcloud pod
+- name: create lighttpd pod
   hosts: localhost
   connection: local
   # delegate_to: localhost
