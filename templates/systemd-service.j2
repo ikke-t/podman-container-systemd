@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
 ExecStartPre=-/usr/bin/podman rm {{ container_name }}
+User={{ container_run_as_user }}
 
 ExecStart=/usr/bin/podman run --name {{ container_name }} {{ container_run_args }}
 

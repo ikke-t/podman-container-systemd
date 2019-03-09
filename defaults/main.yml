@@ -13,6 +13,7 @@ container_restart: on-failure
 service_files_dir: /etc/systemd/system
 systemd_TimeoutStartSec: 2
 systemd_RestartSec: 30
+container_run_as_user: root
 
 # to sepped up you can disable always checking if podman is installed.
 skip_podman_install: true
