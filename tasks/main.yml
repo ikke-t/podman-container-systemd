@@ -12,7 +12,7 @@
     package:
       name: podman
       state: installed
-    when: skip_podman_install != true
+    when: not skip_podman_install
 
   - name: get image Id if it exists
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
