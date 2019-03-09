@@ -11,7 +11,7 @@ I wrote this role in order to help managing podman containers life-cycle on
 my personal server which is not a cluster. Thus I want to use systemd for
 keeping them enabled and running over reboots.
 
-What module does:
+What role does:
 
  * installs Podman
  * pulls required images
