@@ -57,14 +57,14 @@
     service:
       name: "{{ service_name }}"
       state: started
-    when: service_file_before_template.stat.exists == false
+    when: not service_file_before_template.stat.exists
 
   - name: "ensure {{ service_name }} is restarted due config change"
     debug: msg="config has changed:"
     changed_when: True
     notify: restart service
     when:
-      - service_file_before_template.stat.exists == true
+      - service_file_before_template.stat.exists
       - service_file.changed
 
   when: state == "running"
@@ -78,7 +78,7 @@
       name: "{{ service_name }}"
       enabled: false
     when:
-      - service_file_before_template.stat.exists == true
+      - service_file_before_template.stat.exists
 
   - name: ensure "{{ service_name }}" is stopped
     service:
@@ -86,7 +86,7 @@
       state: stopped
       enabled: no
     when:
-      - service_file_before_template.stat.exists == true
+      - service_file_before_template.stat.exists
 
   - name: clean up systemd service file
     file:
