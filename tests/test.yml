@@ -26,12 +26,12 @@
 
   - name: tests container
     vars:
+      container_image: sebp/lighttpd:latest
       container_name: lighttpd
-      container_run_args: >
+      container_run_args: >-
         --rm
         -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
         -p 8080:80
-        sebp/lighttpd:latest
       #state: absent
       state: "{{ state }}"
     import_role:

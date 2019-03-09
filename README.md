@@ -54,7 +54,7 @@ See the tests/main.yml for sample. In short, include role with vars:
   vars:
     container_image: sebp/lighttpd:latest
     container_name: lighttpd
-    container_run_args: >
+    container_run_args: >-
       --rm
       -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
       -p 8080:80
