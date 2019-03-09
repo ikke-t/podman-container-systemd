@@ -11,6 +11,15 @@ I wrote this role in order to help managing podman containers life-cycle on
 my personal server which is not a cluster. Thus I want to use systemd for
 keeping them enabled and running over reboots.
 
+What module does:
+
+ * installs Podman
+ * pulls required images
+ * on consecutive runs it pulls image again, and restarts container if image changed
+ * creates systemd file for container
+ * set's container to be always automatically restarted if container dies.
+ * makes container enter run state at system boot
+
 Requirements
 ------------
 
@@ -37,6 +46,7 @@ Until that you just need to pass all parameters as you would use podman from
 command line. See ```man podman``` or
 [podman tutorials](https://github.com/containers/libpod/tree/master/docs/tutorials)
 for info.
+
 
 
 Dependencies
