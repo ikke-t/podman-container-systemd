@@ -22,14 +22,11 @@
   register: service_file
   when: state == "running"
 
-- name: reload systemd to notice new service file
-  command: systemctl daemon-reload
-  when: service_file.changed
-
-- name: ensure "{{ service_name }}" is enabled at boot
-  service:
+- name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
+  systemd:
     name: "{{ service_name }}"
     enabled: true
+    daemon_reload: yes
   when: state == "running"
 
 - name: ensure "{{ service_name }}" is disabled at boot
