@@ -1,80 +1,100 @@
 ---
 
-- name: ensure podman is installed
-  package:
-    name: podman
-    state: installed
-  when: skip_podman_install != true
-
 - name: check if service file exists already
   stat:
     path: "{{ service_files_dir }}/{{ service_name }}"
   register: service_file_before_template
 
-- name: ensure we have up to date container image
-  command: podman pull "{{ container_image }}"
+- name: do tasks when "{{ service_name }}" state is "running"
+  block:
+
+  - name: ensure podman is installed
+    package:
+      name: podman
+      state: installed
+    when: skip_podman_install != true
+
+  - name: get image Id if it exists
+    # command: podman inspect -f {{.Id}} "{{ container_image }}"
+    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
+    register: pre_pull_id
+    ignore_errors: yes
+
+  - name: ensure we have up to date container image
+    command: "podman pull {{ container_image }}"
+
+  - name: get image Id if it exists
+    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
+    register: post_pull_id
+
+  - name: force restart after image change
+    debug: msg="image has changed"
+    changed_when: True
+    notify: restart service
+    when: pre_pull_id.stdout != post_pull_id.stdout
+
+  # XXX remove above comparison if future podman tells image changed.
+
+  - name: create systemd service file for {{ container_name }}
+    template:
+      src: systemd-service.j2
+      dest: "{{ service_files_dir }}/{{ service_name }}"
+      owner: root
+      group: root
+      mode: 0644
+    notify: reload systemctl
+    register: service_file
+
+  - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
+    systemd:
+      name: "{{ service_name }}"
+      enabled: true
+      daemon_reload: yes
+
+  - name: ensure "{{ service_name }}" is enabled at boot
+    service:
+      name: "{{ service_name }}"
+      enabled: yes
+
+  - name: ensure "{{ service_name }}" is running
+    service:
+      name: "{{ service_name }}"
+      state: started
+    when: service_file_before_template.stat.exists == false
+
+  - name: "ensure {{ service_name }} is restarted due config change"
+    debug: msg="config has changed:"
+    changed_when: True
+    notify: restart service
+    when:
+      - service_file_before_template.stat.exists == true
+      - service_file.changed
+
   when: state == "running"
 
-# XXX figure out logic to find out if image changed. if so, force restart
-# of container to get to latest version.
 
-- name: create systemd service file for {{ container_name }}
-  template:
-    src: systemd-service.j2
-    dest: "{{ service_files_dir }}/{{ service_name }}"
-    owner: root
-    group: root
-    mode: 0644
-  notify: reload systemctl
-  register: service_file
-  when: state == "running"
+- name: do cleanup stuff when state is "absent"
+  block:
 
-- name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
-  systemd:
-    name: "{{ service_name }}"
-    enabled: true
-    daemon_reload: yes
-  when: state == "running"
+  - name: ensure "{{ service_name }}" is disabled at boot
+    service:
+      name: "{{ service_name }}"
+      enabled: false
+    when:
+      - service_file_before_template.stat.exists == true
 
-- name: ensure "{{ service_name }}" is disabled at boot
-  service:
-    name: "{{ service_name }}"
-    enabled: false
-  when:
-    - service_file_before_template.stat.exists == true
-    - state == "absent"
+  - name: ensure "{{ service_name }}" is stopped
+    service:
+      name: "{{ service_name }}"
+      state: stopped
+      enabled: no
+    when:
+      - service_file_before_template.stat.exists == true
 
-- name: ensure "{{ service_name }}" is running
-  service:
-    name: "{{ service_name }}"
-    state: started
-    enabled: yes
-  when:
-    - state == "running"
-    - service_file_before_template.stat.exists == false
+  - name: clean up systemd service file
+    file:
+      path: "{{ service_files_dir }}/{{ service_name }}"
+      state: absent
+    notify: reload systemctl
 
-- name: ensure "{{ service_name }}" is restarted due config change
-  service:
-    name: "{{ service_name }}"
-    state: restarted
-    enabled: yes
-  when:
-    - service_file_before_template.stat.exists == true
-    - service_file.changed
-    - state == "running"
-
-- name: ensure "{{ service_name }}" is stopped
-  service:
-    name: "{{ service_name }}"
-    state: stopped
-    enabled: no
-  when:
-    - service_file_before_template.stat.exists == true
-    - state == "absent"
-
-- name: clean up systemd service file
-  file:
-    path: "{{ service_files_dir }}/{{ service_name }}"
-    state: absent
-  notify: reload systemctl
   when: state == "absent"
