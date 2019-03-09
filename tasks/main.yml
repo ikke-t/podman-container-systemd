@@ -48,13 +48,8 @@
   - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
     systemd:
       name: "{{ service_name }}"
-      enabled: true
-      daemon_reload: yes
-
-  - name: ensure "{{ service_name }}" is enabled at boot
-    service:
-      name: "{{ service_name }}"
       enabled: yes
+      daemon_reload: yes
 
   - name: ensure "{{ service_name }}" is running
     service:
