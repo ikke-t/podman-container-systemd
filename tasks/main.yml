@@ -31,7 +31,9 @@
     debug: msg="image has changed"
     changed_when: True
     notify: restart service
-    when: pre_pull_id.stdout != post_pull_id.stdout
+    when:
+      - pre_pull_id.stdout != post_pull_id.stdout
+      - pre_pull_id is succeeded
 
   # XXX remove above comparison if future podman tells image changed.
 
