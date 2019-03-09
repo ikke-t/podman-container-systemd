@@ -22,9 +22,13 @@ Role Variables
 
 Role uses variables that are required to be passed:
 
+- ```container_image``` - container image and tag, e.g. nextcloud:latest
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service.
-- ```container_run_args``` - Anything you pass to podman, except for the name.
+- ```container_run_args``` - Anything you pass to podman, except for the name
+  and image.
+- ```container_run_as_user``` - Which user should systemd run container as.
+  Defaults to root.
 - ```state``` - container is installed and run if state is ```running```,
   and stopped and systemd file removed if ```absent```
 
@@ -48,12 +52,12 @@ See the tests/main.yml for sample. In short, include role with vars:
 ```
 - name: tests container
   vars:
+    container_image: sebp/lighttpd:latest
     container_name: lighttpd
     container_run_args: >
       --rm
       -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
       -p 8080:80
-      sebp/lighttpd:latest
     #state: absent
     state: running
   import_role:

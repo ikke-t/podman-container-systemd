@@ -11,6 +11,13 @@
     path: "{{ service_files_dir }}/{{ service_name }}"
   register: service_file_before_template
 
+- name: ensure we have up to date container image
+  command: podman pull "{{ container_image }}"
+  when: state == "running"
+
+# XXX figure out logic to find out if image changed. if so, force restart
+# of container to get to latest version.
+
 - name: create systemd service file for {{ container_name }}
   template:
     src: systemd-service.j2

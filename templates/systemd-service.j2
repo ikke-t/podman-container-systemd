@@ -8,7 +8,9 @@ TimeoutStartSec={{ systemd_TimeoutStartSec }}
 ExecStartPre=-/usr/bin/podman rm {{ container_name }}
 User={{ container_run_as_user }}
 
-ExecStart=/usr/bin/podman run --name {{ container_name }} {{ container_run_args }}
+ExecStart=/usr/bin/podman run --name {{ container_name }} \
+  {{ container_run_args }} \
+  {{container_image}}
 
 ExecReload=-/usr/bin/podman stop "{{ container_name }}"
 ExecReload=-/usr/bin/podman rm "{{ container_name }}"
