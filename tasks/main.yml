@@ -67,7 +67,7 @@
       - service_file_before_template.stat.exists
       - service_file.changed
 
-  when: state == "running"
+  when: container_state == "running"
 
 - name: configure firewall if container_firewall_ports is defined
   block:
@@ -75,12 +75,12 @@
   - name: set firewall ports state to enabled when container state is running
     set_fact:
       fw_state: enabled
-    when: state == "running"
+    when: container_state == "running"
 
   - name: set firewall ports state to disabled when container state is not running
     set_fact:
       fw_state: disabled
-    when: state != "running"
+    when: container_state != "running"
 
   - name: ensure firewalld is installed
     tags: firewall
@@ -102,7 +102,7 @@
   when: container_firewall_ports is defined
 
 
-- name: do cleanup stuff when state is "absent"
+- name: do cleanup stuff when container_state is "absent"
   block:
 
   - name: ensure "{{ service_name }}" is disabled at boot
@@ -126,4 +126,4 @@
       state: absent
     notify: reload systemctl
 
-  when: state == "absent"
+  when: container_state == "absent"
