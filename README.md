@@ -38,8 +38,8 @@ Role uses variables that are required to be passed:
   and image.
 - ```container_run_as_user``` - Which user should systemd run container as.
   Defaults to root.
-- ```state``` - container is installed and run if state is ```running```,
-  and stopped and systemd file removed if ```absent```
+- ```container_state``` - container is installed and run if state is
+  ```running```, and stopped and systemd file removed if ```absent```
 
 This playbook doesn't have python module to parse parameters for podman command.
 Until that you just need to pass all parameters as you would use podman from
@@ -68,8 +68,8 @@ See the tests/main.yml for sample. In short, include role with vars:
       --rm
       -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
       -p 8080:80
-    #state: absent
-    state: running
+    #container_state: absent
+    container_state: running
   import_role:
     name: podman-container-systemd
 ```

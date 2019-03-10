@@ -1,7 +1,7 @@
 ---
 
 # state can be running or absent
-state: running
+container_state: running
 
 # systemd service name
 service_name: "{{ container_name }}-container-pod.service"
