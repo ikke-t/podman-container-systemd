@@ -51,11 +51,12 @@
       path: "{{ container_pod_yaml }}"
     register: pod_file
     when: container_pod_yaml is defined
-  - fail:
+  - name: fail if pod configuration file is missing
+    fail:
       msg: "Error: Asking to run pod, but pod definition yaml file is missing: {{ container_pod_yaml }}"
     when:
       - container_pod_yaml is defined
-      - pod_file.stat.exists == false
+      - not pod_file.stat.exists
 
   - name: "create systemd service file for container: {{ container_name }}"
     template:
