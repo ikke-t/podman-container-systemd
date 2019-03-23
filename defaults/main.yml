@@ -11,7 +11,7 @@ service_name: "{{ container_name }}-container-pod.service"
 # by default we want to restart failed container
 container_restart: on-failure
 service_files_dir: /etc/systemd/system
-systemd_TimeoutStartSec: 2
+systemd_TimeoutStartSec: 15
 systemd_RestartSec: 30
 container_run_as_user: root
 

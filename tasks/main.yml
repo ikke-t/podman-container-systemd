@@ -14,38 +14,72 @@
       state: installed
     when: not skip_podman_install
 
-  - name: get image Id if it exists
+  - name: running single container, get image Id if it exists
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
     register: pre_pull_id
     ignore_errors: yes
+    when: container_image is defined
 
-  - name: ensure we have up to date container image
+  - name: running single container, ensure we have up to date container image
     command: "podman pull {{ container_image }}"
+    when: container_image is defined
 
-  - name: get image Id if it exists
+  - name: running single container, get image Id if it exists
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
     register: post_pull_id
+    when: container_image is defined
 
   - name: force restart after image change
     debug: msg="image has changed"
     changed_when: True
     notify: restart service
     when:
+      - container_image is defined
       - pre_pull_id.stdout != post_pull_id.stdout
       - pre_pull_id is succeeded
 
   # XXX remove above comparison if future podman tells image changed.
 
-  - name: create systemd service file for {{ container_name }}
+  - name: seems we use several container images, ensure all are up to date
+    command: "podman pull {{ item }}"
+    when: container_image_list
+    with_items: "{{ container_image_list }}"
+
+  - name: if running pod, ensure configuration file exists
+    stat:
+      path: "{{ container_pod_yaml }}"
+    register: pod_file
+    when: container_pod_yaml is defined
+  - fail:
+      msg: "Error: Asking to run pod, but pod definition yaml file is missing: {{ container_pod_yaml }}"
+    when:
+      - container_pod_yaml is defined
+      - pod_file.stat.exists == false
+
+  - name: "create systemd service file for container: {{ container_name }}"
     template:
-      src: systemd-service.j2
+      src: systemd-service-single.j2
       dest: "{{ service_files_dir }}/{{ service_name }}"
       owner: root
       group: root
       mode: 0644
     notify: reload systemctl
     register: service_file
+    when: container_image is defined
+
+  - name: "create systemd service file for pod: {{ container_name }}"
+    template:
+      src: systemd-service-pod.j2
+      dest: "{{ service_files_dir }}/{{ service_name }}"
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - reload systemctl
+      - start service
+    register: service_file
+    when: container_image_list is defined
 
   - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
     systemd:
@@ -125,5 +159,10 @@
       path: "{{ service_files_dir }}/{{ service_name }}"
       state: absent
     notify: reload systemctl
+
+  - name: clean up pod configuration file
+    file:
+      path: "{{ container_pod_yaml }}"
+      state: absent
 
   when: container_state == "absent"

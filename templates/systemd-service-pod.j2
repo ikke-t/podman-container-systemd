@@ -1,0 +1,21 @@
+[Unit]
+Description={{ container_name }} Podman Container
+After=network.target
+
+[Service]
+Type=forking
+TimeoutStartSec={{ systemd_TimeoutStartSec }}
+ExecStartPre=-/usr/bin/podman pod rm -f {{ container_name }}
+User={{ container_run_as_user }}
+RemainAfterExit=yes
+
+ExecStart=/usr/bin/podman play kube {{ container_pod_yaml }}
+
+ExecReload=-/usr/bin/podman pod stop {{ container_name }}
+ExecReload=-/usr/bin/podman pod rm -f {{ container_name }}
+ExecStop=-/usr/bin/podman pod rm -f {{ container_name }}
+Restart={{ container_restart }}
+RestartSec={{ systemd_RestartSec }}
+
+[Install]
+WantedBy=multi-user.target
