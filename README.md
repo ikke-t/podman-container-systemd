@@ -15,11 +15,19 @@ What role does:
 
  * installs Podman
  * pulls required images
- * on consecutive runs it pulls image again, and restarts container if image changed
- * creates systemd file for container
- * set's container to be always automatically restarted if container dies.
- * makes container enter run state at system boot
+ * on consecutive runs it pulls image again,
+   and restarts container if image changed (not for pod yet)
+ * creates systemd file for container or pod
+ * set's container or pod to be always automatically restarted if container dies.
+ * makes container or pod enter run state at system boot
  * adds or removes containers exposed ports to firewall.
+
+For reference, see these two blogs about the role:
+* [Automate Podman Containers with Ansible 1/2](https://redhatnordicssa.github.io/ansible-podman-containers-1)
+* [Automate Podman Containers with Ansible 2/2](https://redhatnordicssa.github.io/ansible-podman-containers-2)
+
+Blogs describe how you can single containers, or several containers as one pod
+using this module.
 
 Requirements
 ------------
@@ -31,13 +39,18 @@ if user has defined ```container_firewall_ports``` -variable.
 Role Variables
 --------------
 
-Role uses variables that are required to be passed:
+Role uses variables that are required to be passed while including it. As
+there is option to run one container separately or multiple containers in pod,
+note that some options apply only to other method.
 
 - ```container_image``` - container image and tag, e.g. nextcloud:latest
+  This is used only if you run single container
+- ```container_image_list``` - list of container images to run within a pod.
+  This is used only if you run containers in pod.
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service.
 - ```container_run_args``` - Anything you pass to podman, except for the name
-  and image.
+  and image while running single container. Not used for pod.
 - ```container_run_as_user``` - Which user should systemd run container as.
   Defaults to root.
 - ```container_state``` - container is installed and run if state is
