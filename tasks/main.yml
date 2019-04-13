@@ -43,7 +43,7 @@
 
   - name: seems we use several container images, ensure all are up to date
     command: "podman pull {{ item }}"
-    when: container_image_list
+    when: container_image_list is defined
     with_items: "{{ container_image_list }}"
 
   - name: if running pod, ensure configuration file exists
