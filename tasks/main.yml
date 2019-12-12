@@ -165,5 +165,6 @@
     file:
       path: "{{ container_pod_yaml }}"
       state: absent
+    when: container_pod_yaml is defined
 
   when: container_state == "absent"
