@@ -18,6 +18,7 @@ ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
 Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
 KillMode=none
+PIDFile=/%t/%n-pid
 
 [Install]
 WantedBy=multi-user.target
