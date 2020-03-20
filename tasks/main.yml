@@ -14,27 +14,74 @@
       state: installed
     when: not skip_podman_install
 
-  - name: running single container, get image Id if it exists
+  - name: check user exists
+    user:
+      name: "{{ container_run_as_user }}"
+
+  - name: check if user is in subuid file
+    lineinfile:
+      path: /etc/subuid
+      regexp: "^{{ container_run_as_user }}:.*"
+    check_mode: yes
+    register: uid_has
+    ignore_errors: true
+
+  - name: check if group is in subgid file
+    lineinfile:
+      path: /etc/subgid
+      regexp: "^{{ container_run_as_group }}:.*"
+    check_mode: yes
+    register: gid_has
+    ignore_errors: true
+
+  - name: ensure user is in subuid file, if it was missing
+    lineinfile:
+      path: /etc/subuid
+      regexp: "^{{ container_run_as_user }}:.*"
+      line: "{{ container_run_as_user }}:305536:65536"
+      create: yes
+      mode: '0644'
+      owner: root
+      group: root
+    when: uid_has.changed and container_run_as_user != 'root'
+
+  - name: ensure group is in subgid file, if it was missing
+    lineinfile:
+      path: /etc/subgid
+      regexp: "^{{ container_run_as_group }}:.*"
+      line: "{{ container_run_as_group }}:305536:65536"
+      create: yes
+      mode: '0644'
+      owner: root
+      group: root
+    when: gid_has.changed and container_run_as_user != 'root'
+
+  - name: running single container, get image Id if it exists and we are root
+    # XXX podman doesn't work through sudo for non root users, so skip preload if user
+    # https://github.com/containers/libpod/issues/5570
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
     register: pre_pull_id
     ignore_errors: yes
-    when: container_image is defined
+    when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, ensure we have up to date container image
     command: "podman pull {{ container_image }}"
-    when: container_image is defined
+    become_user: "{{ container_run_as_user }}"
+    when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, get image Id if it exists
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
+    become_user: "{{ container_run_as_user }}"
     register: post_pull_id
-    when: container_image is defined
+    when: container_image is defined and container_run_as_user == 'root'
 
   - name: force restart after image change
     debug: msg="image has changed"
     changed_when: True
     notify: restart service
     when:
+      - container_run_as_user == 'root'
       - container_image is defined
       - pre_pull_id.stdout != post_pull_id.stdout
       - pre_pull_id is succeeded
@@ -43,6 +90,7 @@
 
   - name: seems we use several container images, ensure all are up to date
     command: "podman pull {{ item }}"
+    become_user: "{{ container_run_as_user }}"
     when: container_image_list is defined
     with_items: "{{ container_image_list }}"
 
