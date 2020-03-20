@@ -5,20 +5,20 @@ After=network.target
 [Service]
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
-ExecStartPre=-/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStartPre=-/usr/bin/rm -f /%T/%n-pid /%T/%n-cid
 User={{ container_run_as_user }}
 
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
   {{ container_run_args }} \
-  --conmon-pidfile  /%t/%n-pid --cidfile /%t/%n-cid \
+  --conmon-pidfile  /%T/%n-pid --cidfile /%T/%n-cid \
   {{ container_image }}
 
-ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" `cat /%t/%n-cid`"
-ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" `cat /%T/%n-cid`"
+ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%T/%n-cid`"
 Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
 KillMode=none
-PIDFile=/%t/%n-pid
+PIDFile=/%T/%n-pid
 
 [Install]
 WantedBy=multi-user.target
