@@ -67,11 +67,13 @@
 
   - name: running single container, ensure we have up to date container image
     command: "podman pull {{ container_image }}"
+    become: yes
     become_user: "{{ container_run_as_user }}"
     when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, get image Id if it exists
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
+    become: yes
     become_user: "{{ container_run_as_user }}"
     register: post_pull_id
     when: container_image is defined and container_run_as_user == 'root'
@@ -90,6 +92,7 @@
 
   - name: seems we use several container images, ensure all are up to date
     command: "podman pull {{ item }}"
+    become: yes
     become_user: "{{ container_run_as_user }}"
     when: container_image_list is defined
     with_items: "{{ container_image_list }}"
