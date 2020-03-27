@@ -67,6 +67,7 @@ note that some options apply only to other method.
   Systemd service file be named container_name--container-pod.service.
 - ```container_run_args``` - Anything you pass to podman, except for the name
   and image while running single container. Not used for pod.
+- ```container_cmd_args``` - Any command and arguments passed to podman-run after specifying the image name. Not used for pod.
 - ```container_run_as_user``` - Which user should systemd run container as.
   Defaults to root.
 - ```container_run_as_group``` - Which grou should systemd run container as.
