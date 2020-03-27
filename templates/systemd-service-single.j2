@@ -11,7 +11,8 @@ User={{ container_run_as_user }}
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
   {{ container_run_args }} \
   --conmon-pidfile  /%T/%n-pid --cidfile /%T/%n-cid \
-  {{ container_image }}
+  {{ container_image }} \
+  {{ container_cmd_args }}
 
 ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" `cat /%T/%n-cid`"
 ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%T/%n-cid`"
