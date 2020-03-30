@@ -32,6 +32,7 @@
         --rm
         -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
         -p 8080:80/tcp
+        -t
       container_firewall_ports:
         - 8080/tcp
 
