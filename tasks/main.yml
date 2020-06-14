@@ -20,16 +20,20 @@
 
   - name: check if user is in subuid file
     lineinfile:
+      line: '\1'
       path: /etc/subuid
-      regexp: "^{{ container_run_as_user }}:.*"
+      regexp: "^({{ container_run_as_user }}:.*)"
+      backrefs: yes
     check_mode: yes
     register: uid_has
     ignore_errors: true
 
   - name: check if group is in subgid file
     lineinfile:
+      line: '\1'
       path: /etc/subgid
-      regexp: "^{{ container_run_as_group }}:.*"
+      regexp: "^({{ container_run_as_group }}:.*)"
+      backrefs: yes
     check_mode: yes
     register: gid_has
     ignore_errors: true
