@@ -27,6 +27,7 @@
     check_mode: yes
     register: uid_has
     ignore_errors: true
+    when: container_run_as_user != 'root'
 
   - name: check if group is in subgid file
     lineinfile:
@@ -37,6 +38,7 @@
     check_mode: yes
     register: gid_has
     ignore_errors: true
+    when: container_run_as_group != 'root'
 
   - name: ensure user is in subuid file, if it was missing
     lineinfile:
@@ -58,7 +60,7 @@
       mode: '0644'
       owner: root
       group: root
-    when: gid_has.changed and container_run_as_user != 'root'
+    when: gid_has.changed and container_run_as_group != 'root'
 
   - name: running single container, get image Id if it exists and we are root
     # XXX podman doesn't work through sudo for non root users, so skip preload if user
