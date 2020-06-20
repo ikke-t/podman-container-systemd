@@ -78,6 +78,9 @@ note that some options apply only to other method.
   and want to open firewall for. When container_state is absent, firewall ports
   get closed. If you don't want firewalld installed, don't define this.
 - ```systemd_TimeoutStartSec``` - how long does systemd wait for container to start?
+- ```systemd_tempdir``` - Where to store conmon-pidfile and cidfile for single containers.
+  Defaults to ``%T`` on systems supporting this specifier (see man 5 systemd.unit) ``/tmp``
+  otherwise.
 
 This playbook doesn't have python module to parse parameters for podman command.
 Until that you just need to pass all parameters as you would use podman from
