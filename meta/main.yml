@@ -7,6 +7,9 @@ galaxy_info:
   license: GPLv3
   min_ansible_version: 2.4
   platforms:
+    - name: Debian
+      versions:
+        - 10
     - name: EL
       versions:
         - 8
@@ -19,4 +22,9 @@ galaxy_info:
     - container
     - systemd
 
-dependencies: []
+dependencies:
+  - role: systemli.apt_repositories
+    vars:
+      apt_repositories:
+        - preset: kubic
+    when: ansible_distribution == 'Debian' and ansible_distribution_release == 'buster'
