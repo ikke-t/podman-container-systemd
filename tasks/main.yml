@@ -17,11 +17,11 @@
       sysctl_set: true
     when: ansible_distribution == 'Debian'
 
-  - name: Install rootless dependencies
+  - name: Install rootless dependencies on Debian-based
     package:
       name: "{{ podman_dependencies_rootless }}"
       state: present
-    when: container_run_as_user != 'root'
+    when: ansible_os_family == 'Debian' and container_run_as_user != 'root'
 
   - name: ensure podman is installed
     package:
