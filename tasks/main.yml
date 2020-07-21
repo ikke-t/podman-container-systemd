@@ -8,10 +8,25 @@
 - name: do tasks when "{{ service_name }}" state is "running"
   block:
 
+  - name: Allow unprivileged users on Debian
+    sysctl:
+      name: kernel.unprivileged_userns_clone
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/userns.conf
+      sysctl_set: true
+    when: ansible_distribution == 'Debian'
+
+  - name: Install rootless dependencies on Debian-based
+    package:
+      name: "{{ podman_dependencies_rootless }}"
+      state: present
+    when: ansible_os_family == 'Debian' and container_run_as_user != 'root'
+
   - name: ensure podman is installed
     package:
       name: podman
-      state: installed
+      state: present
     when: not skip_podman_install
 
   - name: check user exists
@@ -176,7 +191,7 @@
 
   - name: ensure firewalld is installed
     tags: firewall
-    package: name=firewalld state=installed
+    package: name=firewalld state=present
 
   - name: ensure firewall service is running
     tags: firewall

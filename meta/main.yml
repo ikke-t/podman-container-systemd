@@ -7,6 +7,9 @@ galaxy_info:
   license: GPLv3
   min_ansible_version: 2.4
   platforms:
+    - name: Debian
+      versions:
+        - 10
     - name: EL
       versions:
         - 8
@@ -14,9 +17,21 @@ galaxy_info:
     - name: Fedora
       versions:
         - all
+    - name: Ubuntu
+      versions:
+        - 18.04
+        - 19.04
+        - 19.10
+        - 20.04
   galaxy_tags:
     - podman
     - container
     - systemd
 
-dependencies: []
+dependencies:
+  - role: systemli.apt_repositories
+    vars:
+      apt_repositories:
+        - preset: kubic
+    when: (ansible_distribution == 'Debian' and ansible_distribution_release == 'buster') or
+          ansible_distribution == 'Ubuntu'
