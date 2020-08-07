@@ -9,7 +9,7 @@
   block:
 
   - name: Check for user namespace support in kernel
-    state:
+    stat:
       path: /proc/sys/kernel/unprivileged_userns_clone
     register: unprivileged_userns_clone
     changed_when: false
