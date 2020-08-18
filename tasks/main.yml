@@ -65,7 +65,7 @@
     lineinfile:
       path: /etc/subuid
       regexp: "^{{ container_run_as_user }}:.*"
-      line: "{{ container_run_as_user }}:305536:65536"
+      line: "{{ container_run_as_user }}:165536:65536"
       create: yes
       mode: '0644'
       owner: root
@@ -76,7 +76,7 @@
     lineinfile:
       path: /etc/subgid
       regexp: "^{{ container_run_as_group }}:.*"
-      line: "{{ container_run_as_group }}:305536:65536"
+      line: "{{ container_run_as_group }}:165536:65536"
       create: yes
       mode: '0644'
       owner: root
