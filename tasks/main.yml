@@ -39,49 +39,8 @@
     user:
       name: "{{ container_run_as_user }}"
 
-  - name: check if user is in subuid file
-    lineinfile:
-      line: '\1'
-      path: /etc/subuid
-      regexp: "^({{ container_run_as_user }}:.*)"
-      backrefs: yes
-    check_mode: yes
-    register: uid_has
-    ignore_errors: true
-    when: container_run_as_user != 'root'
-
-  - name: check if group is in subgid file
-    lineinfile:
-      line: '\1'
-      path: /etc/subgid
-      regexp: "^({{ container_run_as_group }}:.*)"
-      backrefs: yes
-    check_mode: yes
-    register: gid_has
-    ignore_errors: true
-    when: container_run_as_group != 'root'
-
-  - name: ensure user is in subuid file, if it was missing
-    lineinfile:
-      path: /etc/subuid
-      regexp: "^{{ container_run_as_user }}:.*"
-      line: "{{ container_run_as_user }}:165536:65536"
-      create: yes
-      mode: '0644'
-      owner: root
-      group: root
-    when: uid_has.changed and container_run_as_user != 'root'
-
-  - name: ensure group is in subgid file, if it was missing
-    lineinfile:
-      path: /etc/subgid
-      regexp: "^{{ container_run_as_group }}:.*"
-      line: "{{ container_run_as_group }}:165536:65536"
-      create: yes
-      mode: '0644'
-      owner: root
-      group: root
-    when: gid_has.changed and container_run_as_group != 'root'
+  - name: Check subuid & subgid
+    import_tasks: check_subid.yml
 
   - name: running single container, get image Id if it exists and we are root
     # XXX podman doesn't work through sudo for non root users, so skip preload if user
