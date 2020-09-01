@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
 ExecStartPre=-/usr/bin/rm -f {{ pidfile }} {{ cidfile }}
-User={{ container_run_as_user }}
 
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
   {{ container_run_args }} \
+  -d --cgroups=no-conmon --replace \
   --conmon-pidfile  {{ pidfile }} --cidfile {{ cidfile }} \
   {{ container_image }} {% if container_cmd_args is defined %} \
   {{ container_cmd_args }} {% endif %}
@@ -22,4 +22,4 @@ KillMode=none
 PIDFile={{ pidfile }}
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target default.target
