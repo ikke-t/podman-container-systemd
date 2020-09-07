@@ -87,23 +87,25 @@
     # XXX podman doesn't work through sudo for non root users, so skip preload if user
     # https://github.com/containers/libpod/issues/5570
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
-    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
+    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ item }}"
     register: pre_pull_id
     ignore_errors: yes
-    when: container_image is defined and container_run_as_user == 'root'
+    when: container_image_list is defined and container_image_list | length == 1 and container_run_as_user == 'root'
+    with_items: "{{ container_image_list }}"
 
-  - name: running single container, ensure we have up to date container image
-    command: "podman pull {{ container_image }}"
+  - name: seems we use several container images, ensure all are up to date
+    command: "podman pull {{ item }}"
     become: yes
     become_user: "{{ container_run_as_user }}"
-    when: container_image is defined and container_run_as_user == 'root'
+    when: container_image_list is defined and container_image_list | length > 0
+    with_items: "{{ container_image_list }}"
 
   - name: running single container, get image Id if it exists
-    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
-    become: yes
-    become_user: "{{ container_run_as_user }}"
+    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ item }}"
     register: post_pull_id
-    when: container_image is defined and container_run_as_user == 'root'
+    ignore_errors: yes
+    when: container_image_list is defined and container_image_list | length == 1 and container_run_as_user == 'root'
+    with_items: "{{ container_image_list }}"
 
   - name: force restart after image change
     debug: msg="image has changed"
@@ -111,7 +113,8 @@
     notify: restart service
     when:
       - container_run_as_user == 'root'
-      - container_image is defined
+      - ontainer_image_list is defined
+      - container_image_list | length == 1
       - pre_pull_id.stdout != post_pull_id.stdout
       - pre_pull_id is succeeded
 
@@ -121,7 +124,7 @@
     command: "podman pull {{ item }}"
     become: yes
     become_user: "{{ container_run_as_user }}"
-    when: container_image_list is defined
+    when: container_image_list is defined and container_image_list | length > 1
     with_items: "{{ container_image_list }}"
 
   - name: if running pod, ensure configuration file exists
@@ -145,7 +148,7 @@
       mode: 0644
     notify: reload systemctl
     register: service_file
-    when: container_image is defined
+    when: container_image_list is defined and container_image_list | length == 1
 
   - name: "create systemd service file for pod: {{ container_name }}"
     template:
@@ -158,7 +161,7 @@
       - reload systemctl
       - start service
     register: service_file
-    when: container_image_list is defined
+    when: container_image_list is defined and container_image_list | length > 1
 
   - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
     systemd:

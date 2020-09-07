@@ -59,10 +59,8 @@ Role uses variables that are required to be passed while including it. As
 there is option to run one container separately or multiple containers in pod,
 note that some options apply only to other method.
 
-- ```container_image``` - container image and tag, e.g. nextcloud:latest
-  This is used only if you run single container
-- ```container_image_list``` - list of container images to run within a pod.
-  This is used only if you run containers in pod.
+- ```container_image_list``` - list of container images to run.
+  If more than one image is defined, then the containers will be run in a pod.
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service.
 - ```container_run_args``` - Anything you pass to podman, except for the name
@@ -105,7 +103,7 @@ Root container:
 ```
 - name: tests container
   vars:
-    container_image: sebp/lighttpd:latest
+    container_image_list: sebp/lighttpd:latest
     container_name: lighttpd
     container_run_args: >-
       --rm
@@ -139,7 +137,7 @@ Rootless container:
   vars:
     container_run_as_user: rootless_user
     container_run_as_group: rootless_user
-    container_image: sebp/lighttpd:latest
+    container_image_list: sebp/lighttpd:latest
     container_name: lighttpd
     container_run_args: >-
       --rm
