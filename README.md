@@ -103,7 +103,8 @@ Root container:
 ```
 - name: tests container
   vars:
-    container_image_list: sebp/lighttpd:latest
+    container_image_list: 
+      - sebp/lighttpd:latest
     container_name: lighttpd
     container_run_args: >-
       --rm
@@ -137,7 +138,8 @@ Rootless container:
   vars:
     container_run_as_user: rootless_user
     container_run_as_group: rootless_user
-    container_image_list: sebp/lighttpd:latest
+    container_image_list: 
+      - sebp/lighttpd:latest
     container_name: lighttpd
     container_run_args: >-
       --rm
