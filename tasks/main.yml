@@ -93,11 +93,11 @@
     when: container_image_list is defined and container_image_list | length == 1 and container_run_as_user == 'root'
     with_items: "{{ container_image_list }}"
 
-  - name: seems we use several container images, ensure all are up to date
+  - name: running single container, ensure we have up to date container image
     command: "podman pull {{ item }}"
     become: yes
     become_user: "{{ container_run_as_user }}"
-    when: container_image_list is defined and container_image_list | length > 0
+    when: container_image_list is defined and container_image_list | length == 1
     with_items: "{{ container_image_list }}"
 
   - name: running single container, get image Id if it exists
