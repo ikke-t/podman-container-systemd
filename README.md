@@ -61,6 +61,10 @@ note that some options apply only to other method.
 
 - ```container_image``` - container image and tag, e.g. nextcloud:latest
   This is used only if you run single container
+- ```container_image_user``` - optional username to use when authenticating
+  to remote registries
+- ```container_image_password``` - optional password to use when authenticating
+  to remote registries
 - ```container_image_list``` - list of container images to run within a pod.
   This is used only if you run containers in pod.
 - ```container_name``` - Identify the container in systemd and podman commands.
@@ -93,7 +97,7 @@ for info.
 Dependencies
 ------------
 
-No dependencies.
+* [containers.podman](https://galaxy.ansible.com/containers/podman) (collection)
 
 Example Playbook
 ----------------

@@ -93,7 +93,12 @@
     when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, ensure we have up to date container image
-    command: "podman pull {{ container_image }}"
+    containers.podman.podman_image:
+      name: "{{ container_image }}"
+      force: yes
+      username: "{{ container_image_user | default(omit) }}"
+      password: "{{ container_image_password | default(omit) }}"
+    notify: restart service
     become: yes
     become_user: "{{ container_run_as_user }}"
     when: container_image is defined and container_run_as_user == 'root'
@@ -105,20 +110,12 @@
     register: post_pull_id
     when: container_image is defined and container_run_as_user == 'root'
 
-  - name: force restart after image change
-    debug: msg="image has changed"
-    changed_when: True
-    notify: restart service
-    when:
-      - container_run_as_user == 'root'
-      - container_image is defined
-      - pre_pull_id.stdout != post_pull_id.stdout
-      - pre_pull_id is succeeded
-
-  # XXX remove above comparison if future podman tells image changed.
-
   - name: seems we use several container images, ensure all are up to date
-    command: "podman pull {{ item }}"
+    containers.podman.podman_image:
+      name: "{{ item }}"
+      force: yes
+      username: "{{ container_image_user | default(omit) }}"
+      password: "{{ container_image_password | default(omit) }}"
     become: yes
     become_user: "{{ container_run_as_user }}"
     when: container_image_list is defined
