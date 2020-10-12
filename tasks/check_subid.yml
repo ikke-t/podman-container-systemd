@@ -1,3 +1,5 @@
+---
+
 - name: check if user is in subuid file
   find:
     path: /etc/subuid
@@ -17,21 +19,19 @@
     path: /etc/subuid
     regexp: "^{{ container_run_as_user }}:.*"
     line: "{{ container_run_as_user }}:165536:65536"
-    create: yes
+    create: true
     mode: '0644'
     owner: root
     group: root
-  when: not uid_line_found.matched and container_run_as_user != 'root'
+  when: container_run_as_user != 'root' and not uid_line_found.matched
 
 - name: ensure group is in subgid file, if it was missing
   lineinfile:
     path: /etc/subgid
     regexp: "^{{ container_run_as_group }}:.*"
     line: "{{ container_run_as_group }}:165536:65536"
-    create: yes
+    create: true
     mode: '0644'
     owner: root
     group: root
-  when: not gid_line_found.matched and container_run_as_group != 'root'
-
-
+  when: container_run_as_group != 'root' and not gid_line_found.matched
