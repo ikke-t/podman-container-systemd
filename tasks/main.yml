@@ -21,13 +21,17 @@
       state: present
       sysctl_file: /etc/sysctl.d/userns.conf
       sysctl_set: true
-    when: ansible_distribution == 'Debian' and unprivileged_userns_clone.stat.exists
+      when:
+        - ansible_distribution == 'Debian'
+        - unprivileged_userns_clone.stat.exists
 
   - name: Install rootless dependencies on Debian-based
     package:
       name: "{{ podman_dependencies_rootless }}"
       state: present
-    when: ansible_os_family == 'Debian' and container_run_as_user != 'root'
+      when:
+        - ansible_os_family == 'Debian'
+        - container_run_as_user != 'root'
 
   - name: ensure podman is installed
     package:
@@ -43,28 +47,31 @@
     import_tasks: check_subid.yml
 
   - name: running single container, get image Id if it exists and we are root
-    # XXX podman doesn't work through sudo for non root users, so skip preload if user
+    # XXX podman doesn't work through sudo for non root users,
+    # so skip preload if user
     # https://github.com/containers/libpod/issues/5570
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
-    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
+    command:
+      "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ container_image }}"
     register: pre_pull_id
-    ignore_errors: yes
+    ignore_errors: true
     when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, ensure we have up to date container image
     containers.podman.podman_image:
       name: "{{ container_image }}"
-      force: yes
+      force: true
       username: "{{ container_image_user | default(omit) }}"
       password: "{{ container_image_password | default(omit) }}"
     notify: restart service
-    become: yes
+    become: true
     become_user: "{{ container_run_as_user }}"
     when: container_image is defined and container_run_as_user == 'root'
 
   - name: running single container, get image Id if it exists
-    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
-    become: yes
+    command:
+      "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ container_image }}"
+    become: true
     become_user: "{{ container_run_as_user }}"
     register: post_pull_id
     when: container_image is defined and container_run_as_user == 'root'
@@ -72,10 +79,10 @@
   - name: seems we use several container images, ensure all are up to date
     containers.podman.podman_image:
       name: "{{ item }}"
-      force: yes
+      force: true
       username: "{{ container_image_user | default(omit) }}"
       password: "{{ container_image_password | default(omit) }}"
-    become: yes
+    become: true
     become_user: "{{ container_run_as_user }}"
     when: container_image_list is defined
     with_items: "{{ container_image_list }}"
@@ -87,7 +94,9 @@
     when: container_pod_yaml is defined
   - name: fail if pod configuration file is missing
     fail:
-      msg: "Error: Asking to run pod, but pod definition yaml file is missing: {{ container_pod_yaml }}"
+      msg: >
+        "Error: Asking to run pod, but pod definition yaml file is missing: "
+        "{{ container_pod_yaml }}"
     when:
       - container_pod_yaml is defined
       - not pod_file.stat.exists
@@ -119,8 +128,8 @@
   - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
     systemd:
       name: "{{ service_name }}"
-      enabled: yes
-      daemon_reload: yes
+      enabled: true
+      daemon_reload: true
 
   - name: ensure "{{ service_name }}" is running
     service:
@@ -130,7 +139,7 @@
 
   - name: "ensure {{ service_name }} is restarted due config change"
     debug: msg="config has changed:"
-    changed_when: True
+    changed_when: true
     notify: restart service
     when:
       - service_file_before_template.stat.exists
@@ -146,7 +155,7 @@
       fw_state: enabled
     when: container_state == "running"
 
-  - name: set firewall ports state to disabled when container state is not running
+  - name: disable firewall ports state when container state is not running
     set_fact:
       fw_state: disabled
     when: container_state != "running"
@@ -163,8 +172,8 @@
     tags: firewall
     firewalld:
       port: "{{ item }}"
-      permanent: yes
-      immediate: yes
+      permanent: true
+      immediate: true
       state: "{{ fw_state }}"
     with_items: "{{ container_firewall_ports }}"
 
@@ -185,7 +194,7 @@
     service:
       name: "{{ service_name }}"
       state: stopped
-      enabled: no
+      enabled: false
     when:
       - service_file_before_template.stat.exists
 
