@@ -21,17 +21,17 @@
       state: present
       sysctl_file: /etc/sysctl.d/userns.conf
       sysctl_set: true
-      when:
-        - ansible_distribution == 'Debian'
-        - unprivileged_userns_clone.stat.exists
+    when:
+      - ansible_distribution == 'Debian'
+      - unprivileged_userns_clone.stat.exists
 
   - name: Install rootless dependencies on Debian-based
     package:
       name: "{{ podman_dependencies_rootless }}"
       state: present
-      when:
-        - ansible_os_family == 'Debian'
-        - container_run_as_user != 'root'
+    when:
+      - ansible_os_family == 'Debian'
+      - container_run_as_user != 'root'
 
   - name: ensure podman is installed
     package:
