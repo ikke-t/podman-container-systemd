@@ -3,14 +3,12 @@
 # state can be running or absent
 container_state: running
 
-# systemd service name
-service_name: "{{ container_name }}-container-pod.service"
-
 # SystemD restart policy
 # see man systemd.service for info
 # by default we want to restart failed container
 container_restart: on-failure
 service_files_dir: /etc/systemd/system
+systemd_scope: system
 systemd_TimeoutStartSec: 15
 systemd_RestartSec: 30
 systemd_tempdir: "{{ '/tmp' if ansible_os_family == 'RedHat' and
@@ -18,6 +16,9 @@ systemd_tempdir: "{{ '/tmp' if ansible_os_family == 'RedHat' and
 container_run_as_user: root
 container_run_as_group: root
 container_stop_timeout: 15
+
+# systemd service name
+service_name: "{{ container_name }}-container-pod-{{ container_run_as_user }}.service"
 
 # to sepped up you can disable always checking if podman is installed.
 skip_podman_install: true

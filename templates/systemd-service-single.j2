@@ -6,7 +6,9 @@ After=network.target
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
 ExecStartPre=-/usr/bin/rm -f {{ pidfile }} {{ cidfile }}
+{% if container_run_as_user == 'root' %}
 User={{ container_run_as_user }}
+{% endif %}
 
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
   {{ container_run_args }} \
@@ -18,7 +20,7 @@ ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" 
 ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat {{ cidfile }}`"
 Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
-KillMode=none
+KillMode=mixed
 PIDFile={{ pidfile }}
 
 [Install]

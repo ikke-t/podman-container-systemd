@@ -1,5 +1,48 @@
 ---
 
+- name: prepare rootless stuff if needed
+  block:
+
+    - name: get user information
+      user:
+        name: "{{ container_run_as_user }}"
+      check_mode: true
+      register: user_info
+
+    - name: set systemd dir if user is not root
+      set_fact:
+        service_files_dir: "{{ user_info.home }}/.config/systemd/user"
+        systemd_scope: user
+      changed_when: false
+
+    - name: ensure systemd files directory exists if user not root
+      file:
+        path: "{{ service_files_dir }}"
+        state: directory
+        owner: "{{ container_run_as_user }}"
+        group: "{{ container_run_as_group }}"
+
+  when: container_run_as_user != "root"
+
+- name: "Find uid of user"
+  command: "id -u {{ container_run_as_user }}"
+  register: container_run_as_uid
+  check_mode: false  # Run even in check mode, to avoid fail with --check.
+  changed_when: false
+
+- name: set systemd runtime dir
+  set_fact:
+    xdg_runtime_dir: "/run/user/{{ container_run_as_uid.stdout }}"
+  changed_when: false
+
+- name: set systemd scope to system if needed
+  set_fact:
+    systemd_scope: system
+    service_files_dir: '/etc/systemd/system'
+    xdg_runtime_dir: "/run/user/{{ container_run_as_uid.stdout }}"
+  when: container_run_as_user == "root"
+  changed_when: false
+
 - name: check if service file exists already
   stat:
     path: "{{ service_files_dir }}/{{ service_name }}"
@@ -113,6 +156,18 @@
       - container_pod_yaml is defined
       - not pod_file.stat.exists
 
+  - name: Check if user is lingering
+    stat:
+      path: "/var/lib/systemd/linger/{{ container_run_as_user }}"
+    register: user_lingering
+    when: container_run_as_user != "root"
+
+  - name: Enable lingering is needed
+    command: "loginctl enable-linger {{ container_run_as_user }}"
+    when:
+      - container_run_as_user != "root"
+      - not user_lingering.stat.exists
+
   - name: "create systemd service file for container: {{ container_name }}"
     template:
       src: systemd-service-single.j2
@@ -120,7 +175,10 @@
       owner: root
       group: root
       mode: 0644
-    notify: reload systemctl
+    notify:
+      - reload systemctl
+      - start service
+      - enable service
     register: service_file
     when: container_image_list is defined and container_image_list | length == 1
 
@@ -134,20 +192,9 @@
     notify:
       - reload systemctl
       - start service
+      - enable service
     register: service_file
     when: container_image_list is defined and container_image_list | length > 1
-
-  - name: ensure "{{ service_name }}" is enabled at boot, and systemd reloaded
-    systemd:
-      name: "{{ service_name }}"
-      enabled: true
-      daemon_reload: true
-
-  - name: ensure "{{ service_name }}" is running
-    service:
-      name: "{{ service_name }}"
-      state: started
-    when: not service_file_before_template.stat.exists
 
   - name: "ensure {{ service_name }} is restarted due config change"
     debug: msg="config has changed:"
@@ -207,6 +254,9 @@
       state: "{{ fw_state }}"
     with_items: "{{ container_firewall_ports }}"
 
+  - name: Force all notified handlers to run at this point
+    meta: flush_handlers
+
   when: container_firewall_ports is defined
 
 
@@ -214,17 +264,29 @@
   block:
 
   - name: ensure "{{ service_name }}" is disabled at boot
-    service:
+    become: true
+    become_user: "{{ container_run_as_user }}"
+    # become_method: machinectl
+    environment:
+      XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
+    systemd:
       name: "{{ service_name }}"
       enabled: false
+      scope: "{{ systemd_scope }}"
     when:
       - service_file_before_template.stat.exists
 
   - name: ensure "{{ service_name }}" is stopped
-    service:
+    become: true
+    become_user: "{{ container_run_as_user }}"
+    # become_method: machinectl
+    environment:
+      XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
+    systemd:
       name: "{{ service_name }}"
       state: stopped
       enabled: false
+      scope: "{{ systemd_scope }}"
     when:
       - service_file_before_template.stat.exists
 
@@ -233,6 +295,21 @@
       path: "{{ service_files_dir }}/{{ service_name }}"
       state: absent
     notify: reload systemctl
+
+  - name: Force all notified handlers to run at this point
+    meta: flush_handlers
+
+  - name: Check if user is lingering
+    stat:
+      path: "/var/lib/systemd/linger/{{ container_run_as_user }}"
+    register: user_lingering
+    when: container_run_as_user != "root"
+
+  - name: Disable lingering (are we sure we want to do this always?)
+    command: "loginctl disable-linger {{ container_run_as_user }}"
+    when:
+      - container_run_as_user != "root"
+      - user_lingering.stat.exists
 
   - name: clean up pod configuration file
     file:
