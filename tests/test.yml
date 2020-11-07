@@ -30,7 +30,8 @@
     vars:
       container_state: running
       # container_state: absent
-      container_image: sebp/lighttpd:latest
+      container_image_list:
+        - sebp/lighttpd:latest
       container_name: lighttpd
       container_run_args: >-
         --rm
