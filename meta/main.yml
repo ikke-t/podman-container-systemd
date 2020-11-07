@@ -33,5 +33,7 @@ dependencies:
     vars:
       apt_repositories:
         - preset: kubic
-    when: (ansible_distribution == 'Debian' and ansible_distribution_release == 'buster') or
-          ansible_distribution == 'Ubuntu'
+    when: >
+      (ansible_distribution == 'Debian' and
+      ansible_distribution_release == 'buster') or
+      ansible_distribution == 'Ubuntu'

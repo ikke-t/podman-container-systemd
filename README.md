@@ -61,6 +61,10 @@ note that some options apply only to other method.
 
 - ```container_image_list``` - list of container images to run.
   If more than one image is defined, then the containers will be run in a pod.
+- ```container_image_user``` - optional username to use when authenticating
+  to remote registries
+- ```container_image_password``` - optional password to use when authenticating
+  to remote registries
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service.
 - ```container_run_args``` - Anything you pass to podman, except for the name
@@ -91,7 +95,7 @@ for info.
 Dependencies
 ------------
 
-No dependencies.
+* [containers.podman](https://galaxy.ansible.com/containers/podman) (collection)
 
 Example Playbook
 ----------------

@@ -1,9 +1,13 @@
 ---
+# yamllint disable rule:line-length
+
 # I run this file with following line to test against my Vagrant Fedora:
 # ansible-playbook --vault-password-file .vault-password -b -i \
 # ~/vagrant/fedora/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory \
 # -e ansible_python_interpreter=/usr/bin/python3 \
 # -e container_state=running test-podman.yml
+
+# yamllint enable rule:line-length
 
 - name: create lighttpd pod
   hosts: all
@@ -25,7 +29,7 @@
   - name: tests container
     vars:
       container_state: running
-      #container_state: absent
+      # container_state: absent
       container_image: sebp/lighttpd:latest
       container_name: lighttpd
       container_run_args: >-
