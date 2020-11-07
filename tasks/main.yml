@@ -163,6 +163,24 @@
   - name: ensure firewalld is installed
     tags: firewall
     package: name=firewalld state=present
+    when: ansible_pkg_mgr != "atomic_container"
+
+  - name: ensure firewalld is installed (on fedora-iot)
+    tags: firewall
+    command: >-
+      rpm-ostree install --idempotent --unchanged-exit-77
+      --allow-inactive firewalld
+    register: ostree
+    failed_when: not ( ostree.rc == 77 or ostree.rc == 0 )
+    changed_when: ostree.rc != 77
+    when: ansible_pkg_mgr == "atomic_container"
+
+  - name: reboot if new stuff was installed
+    reboot:
+      reboot_timeout: 300
+    when:
+      - ostree.rc != 77
+      - ansible_pkg_mgr == "atomic_container"
 
   - name: ensure firewall service is running
     tags: firewall
