@@ -35,6 +35,7 @@
       container_run_args: >-
         --rm
         -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
+        -t
         -p 8080:80/tcp
       container_firewall_ports:
         - 8080/tcp
