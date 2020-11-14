@@ -191,8 +191,8 @@
     reboot:
       reboot_timeout: 300
     when:
-      - ostree.rc != 77
       - ansible_pkg_mgr == "atomic_container"
+      - ostree.rc != 77
 
   - name: ensure firewall service is running
     tags: firewall
