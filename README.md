@@ -90,7 +90,9 @@ command line. See ```man podman``` or
 [podman tutorials](https://github.com/containers/libpod/tree/master/docs/tutorials)
 for info.
 
-
+If you want your
+[images to be automatically updated](http://docs.podman.io/en/latest/markdown/podman-auto-update.1.html),
+add this label to container_cmd_args: ```--label "io.containers.autoupdate=image"```
 
 Dependencies
 ------------
@@ -113,6 +115,7 @@ Root container:
     container_run_args: >-
       --rm
       -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
+      --label "io.containers.autoupdate=image"
       -p 8080:80
     #container_state: absent
     container_state: running
