@@ -19,10 +19,10 @@ galaxy_info:
         - all
     - name: Ubuntu
       versions:
-        - 18.04
-        - 19.04
-        - 19.10
-        - 20.04
+        - bionic
+        - disco
+        - eoan
+        - focal
   galaxy_tags:
     - podman
     - container
