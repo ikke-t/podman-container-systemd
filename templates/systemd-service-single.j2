@@ -24,4 +24,9 @@ KillMode=mixed
 PIDFile={{ pidfile }}
 
 [Install]
+{% if container_run_as_user == 'root' %}
 WantedBy=multi-user.target
+{% endif %}
+{% if container_run_as_user != 'root' %}
+WantedBy=default.target
+{% endif %}

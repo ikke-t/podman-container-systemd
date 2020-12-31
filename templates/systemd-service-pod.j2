@@ -6,7 +6,9 @@ After=network.target
 Type=forking
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
 ExecStartPre=-/usr/bin/podman pod rm -f {{ container_name }}
+{% if container_run_as_user == 'root' %}
 User={{ container_run_as_user }}
+{% endif %}
 RemainAfterExit=yes
 
 ExecStart=/usr/bin/podman play kube {{ container_pod_yaml }}
@@ -18,4 +20,9 @@ Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
 
 [Install]
+{% if container_run_as_user == 'root' %}
 WantedBy=multi-user.target
+{% endif %}
+{% if container_run_as_user != 'root' %}
+WantedBy=default.target
+{% endif %}
