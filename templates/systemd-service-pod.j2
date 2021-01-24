@@ -18,6 +18,7 @@ ExecReload=-/usr/bin/podman pod rm -f {{ container_name }}
 ExecStop=-/usr/bin/podman pod rm -f {{ container_name }}
 Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
+Environment=PODMAN_SYSTEMD_UNIT=%n
 
 [Install]
 {% if container_run_as_user == 'root' %}

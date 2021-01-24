@@ -22,6 +22,7 @@ Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
 KillMode=mixed
 PIDFile={{ pidfile }}
+Environment=PODMAN_SYSTEMD_UNIT=%n
 
 [Install]
 {% if container_run_as_user == 'root' %}

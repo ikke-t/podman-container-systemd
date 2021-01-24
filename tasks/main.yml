@@ -204,6 +204,18 @@
       - service_file_before_template.stat.exists
       - service_file.changed
 
+  - name: ensure auto update is running for images
+    become: true
+    become_user: "{{ container_run_as_user }}"
+    environment:
+      XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
+    systemd:
+      name: podman-auto-update.service
+      daemon_reload: true
+      scope: "{{ systemd_scope }}"
+      state: started
+      enabled: true
+
   when: container_state == "running"
 
 - name: configure firewall if container_firewall_ports is defined
