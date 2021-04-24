@@ -210,7 +210,7 @@
     environment:
       XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
     systemd:
-      name: podman-auto-update.service
+      name: podman-auto-update.timer
       daemon_reload: true
       scope: "{{ systemd_scope }}"
       state: started
