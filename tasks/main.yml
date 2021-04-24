@@ -259,7 +259,7 @@
 
   - name: ensure container's exposed ports firewall state
     tags: firewall
-    firewalld:
+    ansible.posix.firewalld:
       port: "{{ item }}"
       permanent: true
       immediate: true
