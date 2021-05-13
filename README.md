@@ -98,6 +98,7 @@ Dependencies
 ------------
 
 * [containers.podman](https://galaxy.ansible.com/containers/podman) (collection)
+* [ansible.posix](https://galaxy.ansible.com/ansible/posix) (collection)
 
 Example Playbook
 ----------------
