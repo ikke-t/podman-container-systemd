@@ -21,7 +21,7 @@ container_stop_timeout: 15
 service_name: "{{ container_name }}-container-pod-{{ container_run_as_user }}.service"
 
 # to sepped up you can disable always checking if podman is installed.
-skip_podman_install: true
+skip_podman_install: false
 
 podman_dependencies_rootless:
   - fuse-overlayfs
