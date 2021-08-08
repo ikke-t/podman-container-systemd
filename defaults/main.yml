@@ -17,6 +17,15 @@ container_run_as_user: root
 container_run_as_group: root
 container_stop_timeout: 15
 
+# SystemD dependencies (some are hardcoded; see templates)
+systemd_After: []
+systemd_Before: []
+systemd_Conflicts: []
+systemd_RequiredBy: []
+systemd_Requires: []
+systemd_WantedBy: []
+systemd_Wants: []
+
 # systemd service name
 service_name: "{{ container_name }}-container-pod-{{ container_run_as_user }}.service"
 
