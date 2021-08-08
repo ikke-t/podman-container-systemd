@@ -36,7 +36,8 @@ dependencies:
     when: >
       (ansible_distribution == 'Debian' and
       ansible_distribution_release == 'buster') or
-      ansible_distribution == 'Ubuntu'
+      (ansible_distribution == 'Ubuntu' and
+      ansible_distribution_version is version('21.04', '<'))
 
 collections:
   - containers.podman
