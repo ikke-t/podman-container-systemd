@@ -95,6 +95,7 @@
     # https://github.com/containers/libpod/issues/5570
     # command: podman inspect -f {{.Id}} "{{ container_image }}"
     command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ item }}"
+    changed_when: false
     register: pre_pull_id
     ignore_errors: true
     when:
@@ -121,6 +122,7 @@
   - name: running single container, get image Id if it exists
     command:
       "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ item }}"
+    changed_when: false
     become: true
     become_user: "{{ container_run_as_user }}"
     register: post_pull_id
