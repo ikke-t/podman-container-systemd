@@ -5,6 +5,8 @@ After=network.target
 [Service]
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
+ExecStartPre=-/usr/bin/podman stop -t {{ container_stop_timeout|quote }} {{ container_name|quote }}
+ExecStartPre=-/usr/bin/podman rm -f {{ container_name|quote }}
 ExecStartPre=-/usr/bin/rm -f {{ pidfile }} {{ cidfile }}
 {% if container_run_as_user == 'root' %}
 User={{ container_run_as_user }}
