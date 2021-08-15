@@ -38,10 +38,19 @@
 - name: set systemd scope to system if needed
   set_fact:
     systemd_scope: system
-    service_files_dir: '/etc/systemd/system'
+    service_files_dir: /usr/local/lib/systemd/system
     xdg_runtime_dir: "/run/user/{{ container_run_as_uid.stdout }}"
   when: container_run_as_user == "root"
   changed_when: false
+
+- name: create local systemd directory
+  when: service_files_dir == '/usr/local/lib/systemd/system'
+  file:
+    group: root
+    mode: u=rwX,go=rX
+    owner: root
+    path: /usr/local/lib/systemd/system/
+    state: directory
 
 - name: check if service file exists already
   stat:
