@@ -41,7 +41,7 @@
       container_firewall_ports:
         - 8080/tcp
 
-    import_role:
+    ansible.builtin.include_role:
       name: podman-container-systemd
 
   - name: Wait for lighttpd to come up
