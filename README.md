@@ -94,6 +94,10 @@ If you want your
 [images to be automatically updated](http://docs.podman.io/en/latest/markdown/podman-auto-update.1.html),
 add this label to container_cmd_args: ```--label "io.containers.autoupdate=image"```
 
+Never use `ansible.builtin.import_role` to execute this role if you intend to use it more
+than once per playbook, or you will fall in
+[this anti-pattern](https://medium.com/opsops/ansible-anti-pattern-import-role-task-with-task-level-vars-a9f5c752c9c3).
+
 Dependencies
 ------------
 
@@ -123,7 +127,7 @@ Root container:
     container_firewall_ports:
       - 8080/tcp
       - 8443/tcp
-  import_role:
+  ansible.builtin.include_role:
     name: podman-container-systemd
 ```
 
@@ -158,7 +162,7 @@ Rootless container:
     container_firewall_ports:
       - 8080/tcp
       - 8443/tcp
-  import_role:
+  ansible.builtin.include_role:
     name: podman-container-systemd
 ```
 
