@@ -14,7 +14,8 @@
   # connection: local
   # delegate_to: localhost
   vars:
-
+    container_state: running
+#    container_state: absent
   tasks:
   - name: create test dir for www file
     file:
@@ -28,8 +29,6 @@
 
   - name: tests container
     vars:
-      container_state: running
-      # container_state: absent
       container_image_list:
         - sebp/lighttpd:latest
       container_name: lighttpd
