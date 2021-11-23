@@ -73,6 +73,9 @@
   - debug:
       msg:
         - "Got http://localhost:8080 to test if it worked!"
-        - "This sould state 'file' on success: {{ get_url.state }}"
+        - "This should state 'file' on success: {{ get_url.results[idx].state }}"
         - "On success, output should say 'Hello world!' here: {{ curl.stdout }}"
+    loop: "{{ container_instances }}"
+    loop_control:
+      index_var: idx
     when: container_state == "running"
