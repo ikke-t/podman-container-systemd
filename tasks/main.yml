@@ -44,13 +44,14 @@
   changed_when: false
 
 - name: create local systemd directory
-  when: service_files_dir == '/usr/local/lib/systemd/system'
   file:
     group: root
     mode: u=rwX,go=rX
     owner: root
     path: /usr/local/lib/systemd/system/
     state: directory
+  become: true
+  when: container_run_as_user == "root" and service_files_dir == '/usr/local/lib/systemd/system'
 
 - name: check if service file exists already
   stat:
@@ -186,6 +187,8 @@
       owner: root
       group: root
       mode: 0644
+    become: true
+    become_user: "{{ container_run_as_user }}"
     notify:
       - reload systemctl
       - start service
@@ -245,6 +248,7 @@
   - name: ensure firewalld is installed
     tags: firewall
     package: name=firewalld state=present
+    become: true
     when: ansible_pkg_mgr != "atomic_container"
 
   - name: ensure firewalld is installed (on fedora-iot)
@@ -275,6 +279,7 @@
       permanent: true
       immediate: true
       state: "{{ fw_state }}"
+    become: true
     with_items: "{{ container_firewall_ports }}"
 
   - name: Force all notified handlers to run at this point
@@ -317,6 +322,7 @@
     file:
       path: "{{ service_files_dir }}/{{ service_name }}"
       state: absent
+    become: true
     notify: reload systemctl
 
   - name: Force all notified handlers to run at this point
