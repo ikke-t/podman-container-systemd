@@ -23,7 +23,7 @@
     mode: '0644'
     owner: root
     group: root
-  when: container_run_as_user != 'root' and not uid_line_found.matched
+  when: (not skip_subgid_change) and container_run_as_user != 'root' and not uid_line_found.matched
 
 - name: ensure group is in subgid file, if it was missing
   lineinfile:
@@ -34,4 +34,4 @@
     mode: '0644'
     owner: root
     group: root
-  when: container_run_as_group != 'root' and not gid_line_found.matched
+  when: (not skip_subgid_change) and container_run_as_group != 'root' and not gid_line_found.matched
