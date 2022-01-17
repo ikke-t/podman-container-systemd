@@ -126,7 +126,7 @@
     when:
       - container_image_list is defined
       - container_image_list | length == 1
-      - container_run_as_user == 'root'
+      #- container_run_as_user == 'root'
     with_items: "{{ container_image_list }}"
 
   - name: running single container, get image Id if it exists
@@ -140,7 +140,7 @@
     when:
       - container_image_list is defined
       - container_image_list | length == 1
-      - container_run_as_user == 'root'
+      #- container_run_as_user == 'root'
     with_items: "{{ container_image_list }}"
 
   - name: seems we use several container images, ensure all are up to date
@@ -184,8 +184,8 @@
     template:
       src: systemd-service-single.j2
       dest: "{{ service_files_dir }}/{{ service_name }}"
-      owner: root
-      group: root
+      owner: "{{ container_run_as_user }}"
+      group: "{{ container_run_as_user }}"
       mode: 0644
     become: true
     become_user: "{{ container_run_as_user }}"
