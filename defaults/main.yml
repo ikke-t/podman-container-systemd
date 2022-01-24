@@ -36,3 +36,8 @@ podman_dependencies_rootless:
   - fuse-overlayfs
   - slirp4netns
   - uidmap
+
+# pod yaml deploy
+container_pod_yaml_deploy: false
+container_pod_yaml_template: templates/container-pod-yaml.j2
+container_pod_yaml_template_validation: false

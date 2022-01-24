@@ -154,11 +154,18 @@
     when: container_image_list is defined and container_image_list | length > 1
     with_items: "{{ container_image_list }}"
 
+  - name: Include pod yaml templating
+    ansible.builtin.include_tasks: deploy_pod_yaml.yml
+    when:
+      - container_pod_yaml is defined
+      - container_pod_yaml_deploy
+
   - name: if running pod, ensure configuration file exists
     stat:
       path: "{{ container_pod_yaml }}"
     register: pod_file
     when: container_pod_yaml is defined
+
   - name: fail if pod configuration file is missing
     fail:
       msg: >
