@@ -18,6 +18,7 @@ What role does:
  * on consecutive runs it pulls image again,
    and restarts container if image changed (not for pod yet)
  * creates systemd file for container or pod
+ * creates kubernetes yaml for pod
  * set's container or pod to be always automatically restarted if container dies.
  * makes container or pod enter run state at system boot
  * adds or removes containers exposed ports to firewall.
@@ -37,8 +38,6 @@ using this module.
 * The user should have entries in /etc/sub[gu]id files for namespace range.
   If not, this role adds some variables there in order to get something going,
   but preferrably you check them.
-* I only tested the single container mode, not the pod mode with several containers.
-  Please report back how that part works! :)
 * Some control things like memory or other resource limit's won't work as user.
 * You want to increase ```systemd_TimeoutStartSec``` heavily, as we can not
   prefetch the images before systemd unit start. So systemd needs to wait
@@ -50,7 +49,8 @@ Requirements
 
 Requires system which is capable of running podman, and that podman is found
 from package repositories. Role installs podman. Role also installs firewalld
-if user has defined ```container_firewall_ports``` -variable.
+if user has defined ```container_firewall_ports``` -variable. Installs kubeval
+for a pod if ```container_pod_yaml_template_validation: true```.
 
 Role Variables
 --------------
@@ -83,6 +83,15 @@ note that some options apply only to other method.
 - ```systemd_tempdir``` - Where to store conmon-pidfile and cidfile for single containers.
   Defaults to ``%T`` on systems supporting this specifier (see man 5 systemd.unit) ``/tmp``
   otherwise.
+- ```container_pod_yaml``` - Path to the pod yaml file. Required for a pod.
+- ```container_pod_yaml_deploy``` - Wheter to deploy the pod yaml file. Defaults to ``false``
+- ```container_pod_yaml_template``` - Template to use for pod yaml deploy.
+  As the template doesn't include every possible configuration option it is possible to overwrite it with your own template.
+  Defaults to ``templates/container-pod-yaml.j2``.
+- ```container_pod_yaml_template_validation``` - Wheter to validate the deployed pod yaml file. Defaults to ``false``.
+- ```container_pod_labels``` - Defines labels for ```container_pod_yaml_deploy```.
+- ```container_pod_volumes``` - Defines volumes for ```container_pod_yaml_deploy```.
+- ```container_pod_containers``` - Defines containers for ```container_pod_yaml_deploy```.
 
 This playbook doesn't have python module to parse parameters for podman command.
 Until that you just need to pass all parameters as you would use podman from
@@ -166,6 +175,48 @@ Rootless container:
     name: podman-container-systemd
 ```
 
+Rootless Pod:
+
+```
+- name: ensure user
+  user:
+    name: rootless_user
+    comment: I run sample container
+
+- name: tests pod
+  vars:
+    container_run_as_user: rootless_user
+    container_run_as_group: rootless_user
+    container_image_list:
+      - sebp/lighttpd:latest
+    container_name: lighttpd-pod
+    container_pod_yaml: /home/rootless_user/lighttpd-pod.yml
+    container_pod_yaml_deploy: true
+    container_pod_yaml_template_validation: true
+    container_pod_labels:
+      app: "{{ container_name }}"
+      io.containers.autoupdate: 'image(1)'
+    container_pod_volumes:
+      - name: htdocs
+        hostPath:
+          path: /tmp/podman-container-systemd
+          type: DirectoryOrCreate
+    container_pod_containers:
+      - name: lighttpd
+        image: sebp/lighttpd:latest
+        volumeMounts:
+          - name: htdocs
+            mountPath: /var/www/localhost/htdocs:Z
+        ports:
+          - containerPort: 80
+            hostPort: 8080
+    container_state: running
+    container_firewall_ports:
+      - 8080/tcp
+      - 8443/tcp
+  ansible.builtin.include_role:
+    name: podman-container-systemd
+```
 
 License
 -------
