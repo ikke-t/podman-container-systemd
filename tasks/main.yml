@@ -194,8 +194,6 @@
       owner: root
       group: root
       mode: 0644
-    become: true
-    become_user: "{{ container_run_as_user }}"
     notify:
       - reload systemctl
       - start service
