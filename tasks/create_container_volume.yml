@@ -14,4 +14,3 @@
     mode: '{{ container_dir_mode|default(omit) }}'
     state: directory
   when: not (_container_folder.stat.isdir is defined and _container_folder.stat.isdir)
-  
