@@ -1,0 +1,17 @@
+---
+- name: Check if {{ item }} is existing
+  become: yes
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: _container_folder
+
+- name: Create directory {{ item }} and set permissions
+  become: yes
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ container_dir_owner|default(container_run_as_user) }}"
+    group: "{{ container_dir_group|default(container_run_as_group) }}"
+    mode: '{{ container_dir_mode|default(omit) }}'
+    state: directory
+  when: not (_container_folder.stat.isdir is defined and _container_folder.stat.isdir)
+  

@@ -19,11 +19,11 @@ What role does:
    and restarts container if image changed (not for pod yet)
  * creates systemd file for container or pod
  * creates kubernetes yaml for pod
+ * creates volume directories for containers if they do not exist. (for pod use DirectoryOrCreate)
  * set's container or pod to be always automatically restarted if container dies.
  * makes container or pod enter run state at system boot
  * adds or removes containers exposed ports to firewall.
  * It takes parameter for running rootless containers under given user
-   (I didn't test this with pod mode yet)
 
 For reference, see these two blogs about the role:
 * [Automate Podman Containers with Ansible 1/2](https://redhatnordicssa.github.io/ansible-podman-containers-1)
@@ -72,8 +72,16 @@ note that some options apply only to other method.
 - ```container_cmd_args``` - Any command and arguments passed to podman-run after specifying the image name. Not used for pod.
 - ```container_run_as_user``` - Which user should systemd run container as.
   Defaults to root.
-- ```container_run_as_group``` - Which grou should systemd run container as.
+- ```container_run_as_group``` - Which group should systemd run container as.
   Defaults to root.
+- ```container_dir_owner``` - Which owner should the volume dirs have.
+  Defaults to container_run_as_user.
+  If you use :U as a volume option podman will set the permissions for the user inside the container automatically.
+  Quote: The :U suffix tells Podman to use the correct host UID and GID based on the UID and GID within the container, to change recursively the owner and group of the source volume. Warning use with caution since this will modify the host filesystem.
+- ```container_dir_group``` - Which group should the volume dirs have.
+  Defaults to container_run_as_group.
+- ```container_dir_mode``` - Which permissions should the volume dirs have.
+  Defaults to '0755'.
 - ```container_state``` - container is installed and run if state is
   ```running```, and stopped and systemd file removed if ```absent```
 - ```container_firewall_ports``` - list of ports you have exposed from container
@@ -128,7 +136,7 @@ Root container:
     container_name: lighttpd
     container_run_args: >-
       --rm
-      -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
+      -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z,U
       --label "io.containers.autoupdate=image"
       -p 8080:80
     #container_state: absent
@@ -148,13 +156,6 @@ Rootless container:
     name: rootless_user
     comment: I run sample container
 
-- name: ensure directory
-  file:
-    name: /tmp/podman-container-systemd
-    owner: rootless_user
-    group: rootless_user
-    state: directory
-
 - name: tests container
   vars:
     container_run_as_user: rootless_user
@@ -164,7 +165,7 @@ Rootless container:
     container_name: lighttpd
     container_run_args: >-
       --rm
-      -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z
+      -v /tmp/podman-container-systemd:/var/www/localhost/htdocs:Z,U
       -p 8080:80
     #container_state: absent
     container_state: running
