@@ -187,6 +187,14 @@
       - container_run_as_user != "root"
       - not user_lingering.stat.exists
 
+  - name: "Ensure volume directories exist for {{ container_name }}"
+    ansible.builtin.include_tasks: create_container_volume.yml
+    loop: "{{ container_run_args | regex_findall('-v ([^:]*)') }}"
+    when: 
+      - container_image_list is defined and container_image_list | length == 1
+      - container_run_args is defined and container_run_args | length > 0
+      - container_pod_yaml is undefined
+
   - name: "create systemd service file for container: {{ container_name }}"
     template:
       src: systemd-service-single.j2
