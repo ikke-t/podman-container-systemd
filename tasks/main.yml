@@ -237,8 +237,8 @@
     become: true
     become_user: "{{ container_run_as_user }}"
     file:
-      src: "/lib/systemd/system/{{ item.name }}"
-      dest: "{{ service_files_dir }}/{{ item.name }}"
+      src: "/lib/systemd/system/{{ item }}"
+      dest: "{{ service_files_dir }}/{{ item }}"
       state: link
     with_items:
       - podman-auto-update.timer
