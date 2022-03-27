@@ -233,6 +233,18 @@
       - service_file_before_template.stat.exists
       - service_file.changed
 
+  - name: Provide auto update to rootless
+    become: true
+    become_user: "{{ container_run_as_user }}"
+    file:
+      src: "/lib/systemd/system/{{ item.name }}"
+      dest: "{{ service_files_dir }}/{{ item.name }}"
+      state: link
+    with_items:
+      - podman-auto-update.timer
+      - podman-auto-update.service
+    when: container_run_as_user != "root"
+
   - name: ensure auto update is running for images
     become: true
     become_user: "{{ container_run_as_user }}"
