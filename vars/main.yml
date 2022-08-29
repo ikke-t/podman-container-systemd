@@ -7,3 +7,4 @@ pidfile: "{{ cidpid_base }}pid"
 
 # kubeval
 kubeval_url: "https://github.com/instrumenta/kubeval/releases/latest"
+

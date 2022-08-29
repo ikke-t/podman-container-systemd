@@ -61,9 +61,17 @@ note that some options apply only to other method.
 
 - ```container_image_list``` - list of container images to run.
   If more than one image is defined, then the containers will be run in a pod.
-- ```container_image_user``` - optional username to use when authenticating
+  It is possible to define it as a dictionary to include authentication information per image, like so:
+``` 
+container_image_list:
+  - image: docker.io/imagename
+    user: exampleuser
+    password: examplepw
+  - image: docker.io/imagename2
+```
+- ```container_image_user``` - optional default username to use when authenticating
   to remote registries
-- ```container_image_password``` - optional password to use when authenticating
+- ```container_image_password``` - optional default password to use when authenticating
   to remote registries
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service.

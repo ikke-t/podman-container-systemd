@@ -29,7 +29,7 @@ User={{ container_run_as_user }}
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
   {{ container_run_args }} \
   --conmon-pidfile  {{ pidfile }} --cidfile {{ cidfile }} \
-  {{ container_image_list | first }} {% if container_cmd_args is defined %} \
+  {{ _container_image_list | map(attribute='image') | first }} {% if container_cmd_args is defined %} \
   {{ container_cmd_args }} {% endif %}
 
 ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" `cat {{ cidfile }}`"
