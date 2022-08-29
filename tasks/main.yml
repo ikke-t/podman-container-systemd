@@ -99,6 +99,23 @@
   - name: Check subuid & subgid
     import_tasks: check_subid.yml
 
+  - name: Ensure empty internal variable _container_image_list
+    set_fact:
+      _container_image_list: []
+
+  - name: Convert container_image_list to new form
+    set_fact:
+      _container_image_list: "{{ _container_image_list + [{'image': item}] }}"
+    loop: "{{ container_image_list }}"
+    when: not (container_image_list | selectattr("image", "defined"))
+    no_log: true
+
+  - name: Always use internal variable for container_image_list
+    set_fact:
+      _container_image_list: "{{ container_image_list }}"
+    when: _container_image_list | length == 0
+    no_log: true
+
   - name: running single container, get image Id if it exists and we are root
     # XXX podman doesn't work through sudo for non root users,
     # so skip preload if user
@@ -109,25 +126,24 @@
     register: pre_pull_id
     ignore_errors: true
     when:
-      - container_image_list is defined
-      - container_image_list | length == 1
+      - _container_image_list | length == 1
       - container_run_as_user == 'root'
-    with_items: "{{ container_image_list }}"
+    loop: "{{ _container_image_list | map(attribute='image') }}"
 
   - name: running single container, ensure we have up to date container image
     containers.podman.podman_image:
-      name: "{{ item }}"
+      name: "{{ item.image }}"
       force: true
-      username: "{{ container_image_user | default(omit) }}"
-      password: "{{ container_image_password | default(omit) }}"
+      username: "{{ item.user | default(container_image_user) | default(omit) }}"
+      password: "{{ item.password | default(container_image_password) | default(omit) }}"
     notify: restart service
     become: true
     become_user: "{{ container_run_as_user }}"
     when:
-      - container_image_list is defined
-      - container_image_list | length == 1
+      - _container_image_list | length == 1
       - container_run_as_user == 'root'
-    with_items: "{{ container_image_list }}"
+    loop: "{{ _container_image_list }}"
+    no_log: true
 
   - name: running single container, get image Id if it exists
     command:
@@ -138,21 +154,21 @@
     register: post_pull_id
     ignore_errors: true
     when:
-      - container_image_list is defined
-      - container_image_list | length == 1
+      - _container_image_list | length == 1
       - container_run_as_user == 'root'
-    with_items: "{{ container_image_list }}"
+    loop: "{{ _container_image_list | map(attribute='image') }}"
 
   - name: seems we use several container images, ensure all are up to date
     containers.podman.podman_image:
-      name: "{{ item }}"
+      name: "{{ item.image }}"
       force: true
-      username: "{{ container_image_user | default(omit) }}"
-      password: "{{ container_image_password | default(omit) }}"
+      username: "{{ item.user | default(container_image_user) | default(omit) }}"
+      password: "{{ item.password | default(container_image_password) | default(omit) }}"
     become: true
     become_user: "{{ container_run_as_user }}"
-    when: container_image_list is defined and container_image_list | length > 1
-    with_items: "{{ container_image_list }}"
+    when: _container_image_list | length > 1
+    loop: "{{ _container_image_list }}"
+    no_log: true
 
   - name: Include pod yaml templating
     ansible.builtin.include_tasks: deploy_pod_yaml.yml
@@ -191,7 +207,7 @@
     ansible.builtin.include_tasks: create_container_volume.yml
     loop: "{{ container_run_args | regex_findall('-v ([^:]*)') }}"
     when: 
-      - container_image_list is defined and container_image_list | length == 1
+      - _container_image_list | length == 1
       - container_run_args is defined and container_run_args | length > 0
       - container_pod_yaml is undefined
 
@@ -208,7 +224,7 @@
       - start service
       - enable service
     register: service_file
-    when: container_image_list is defined and container_image_list | length == 1
+    when: _container_image_list | length == 1
 
   - name: "create systemd service file for pod: {{ container_name }}"
     template:
@@ -222,7 +238,7 @@
       - start service
       - enable service
     register: service_file
-    when: container_image_list is defined and container_image_list | length > 1
+    when: _container_image_list | length > 1
 
   - name: "ensure {{ service_name }} is restarted due config change"
     debug: msg="config has changed:"
