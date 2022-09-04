@@ -145,6 +145,7 @@
     when:
       - _container_image_list | length == 1
       - container_run_as_user == 'root'
+      - not (item.image | regex_search ('^localhost/.*'))
     loop: "{{ _container_image_list }}"
     no_log: true
 
@@ -169,7 +170,9 @@
       password: "{{ item.password | default(container_image_password) | default(omit) }}"
     become: true
     become_user: "{{ container_run_as_user }}"
-    when: _container_image_list | length > 1
+    when:
+      - _container_image_list | length > 1
+      - not (item.image | regex_search ('^localhost/.*'))
     loop: "{{ _container_image_list }}"
     no_log: true
 
