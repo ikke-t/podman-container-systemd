@@ -190,7 +190,7 @@
   - name: "Ensure volume directories exist for {{ container_name }}"
     ansible.builtin.include_tasks: create_container_volume.yml
     loop: "{{ container_run_args | regex_findall('-v ([^:]*)') }}"
-    when: 
+    when:
       - container_image_list is defined and container_image_list | length == 1
       - container_run_args is defined and container_run_args | length > 0
       - container_pod_yaml is undefined
@@ -199,8 +199,8 @@
     template:
       src: systemd-service-single.j2
       dest: "{{ service_files_dir }}/{{ service_name }}"
-      owner: root
-      group: root
+      owner: "{{ container_run_as_user }}"
+      group: "{{ container_run_as_group }}"
       mode: 0644
     become: true
     become_user: "{{ container_run_as_user }}"
@@ -232,6 +232,18 @@
     when:
       - service_file_before_template.stat.exists
       - service_file.changed
+
+  - name: Provide auto update to rootless
+    become: true
+    become_user: "{{ container_run_as_user }}"
+    file:
+      src: "/lib/systemd/system/{{ item }}"
+      dest: "{{ service_files_dir }}/{{ item }}"
+      state: link
+    with_items:
+      - podman-auto-update.timer
+      - podman-auto-update.service
+    when: container_run_as_user != "root"
 
   - name: ensure auto update is running for images
     become: true
