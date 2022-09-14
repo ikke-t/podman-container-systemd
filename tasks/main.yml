@@ -199,11 +199,10 @@
     template:
       src: systemd-service-single.j2
       dest: "{{ service_files_dir }}/{{ service_name }}"
-      owner: root
-      group: root
-      mode: 0644
+      owner: "{{ service_files_owner }}"
+      group: "{{ service_files_group }}"
+      mode: "{{ service_files_mode }}"
     become: true
-    become_user: "{{ container_run_as_user }}"
     notify:
       - reload systemctl
       - start service
@@ -215,9 +214,9 @@
     template:
       src: systemd-service-pod.j2
       dest: "{{ service_files_dir }}/{{ service_name }}"
-      owner: root
-      group: root
-      mode: 0644
+      owner: "{{ service_files_owner }}"
+      group: "{{ service_files_group }}"
+      mode: "{{ service_files_mode }}"
     notify:
       - reload systemctl
       - start service

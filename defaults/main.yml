@@ -8,6 +8,9 @@ container_state: running
 # by default we want to restart failed container
 container_restart: on-failure
 service_files_dir: /usr/local/lib/systemd/system
+service_files_owner: root
+service_files_group: root
+service_files_mode: 0644
 systemd_scope: system
 systemd_TimeoutStartSec: 15
 systemd_RestartSec: 30

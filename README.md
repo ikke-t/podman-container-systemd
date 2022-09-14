@@ -66,7 +66,7 @@ note that some options apply only to other method.
 - ```container_image_password``` - optional password to use when authenticating
   to remote registries
 - ```container_name``` - Identify the container in systemd and podman commands.
-  Systemd service file be named container_name--container-pod.service.
+  Systemd service file be named container_name--container-pod.service. This can be overwritten with service_name.
 - ```container_run_args``` - Anything you pass to podman, except for the name
   and image while running single container. Not used for pod.
 - ```container_cmd_args``` - Any command and arguments passed to podman-run after specifying the image name. Not used for pod.
@@ -91,6 +91,16 @@ note that some options apply only to other method.
 - ```systemd_tempdir``` - Where to store conmon-pidfile and cidfile for single containers.
   Defaults to ``%T`` on systems supporting this specifier (see man 5 systemd.unit) ``/tmp``
   otherwise.
+- ```service_name``` - How the systemd service files are named.
+  Defaults to ```"{{ container_name }}-container-pod-{{ container_run_as_user }}.service"```.
+- ```service_files_dir``` - Where to store the systemd service files.
+  Defaults to ```/usr/local/lib/systemd/system``` for root and ```"{{ user_info.home }}/.config/systemd/user``` for a rootless user
+- ```service_files_owner``` - Which user should own the systemd service files.
+  Defaults to root.
+- ```service_files_group``` - Which group should own the systemd service files.
+  Defaults to root.
+- ```service_files_mode``` - Which permissions should the systemd service files have.
+  Defaults to 0644.
 - ```container_pod_yaml``` - Path to the pod yaml file. Required for a pod.
 - ```container_pod_yaml_deploy``` - Wheter to deploy the pod yaml file. Defaults to ``false``
 - ```container_pod_yaml_template``` - Template to use for pod yaml deploy.
