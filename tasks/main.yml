@@ -10,7 +10,7 @@
 - name: Fails if user "{{ container_run_as_user }}" doesn't exist
   fail:
     msg: User "{{ container_run_as_user }}" doesn't exist.
-  when: user_info.uic is not defined
+  when: user_info.name is not defined
 
 - name: prepare rootless stuff if needed
   block:
