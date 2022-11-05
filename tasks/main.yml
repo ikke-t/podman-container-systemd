@@ -1,14 +1,18 @@
 ---
 
+- name: Get user information
+  user:
+    name: "{{ container_run_as_user }}"
+  check_mode: true
+  register: user_info
+
+- name: Fails if user "{{ container_run_as_user }}" doesn't exist
+  fail:
+    msg: User "{{ container_run_as_user }}" doesn't exist.
+  when: user_info is changed
+
 - name: prepare rootless stuff if needed
   block:
-
-    - name: get user information
-      user:
-        name: "{{ container_run_as_user }}"
-      check_mode: true
-      register: user_info
-
     - name: set systemd dir if user is not root
       set_fact:
         service_files_dir: "{{ user_info.home }}/.config/systemd/user"
@@ -24,22 +28,15 @@
 
   when: container_run_as_user != "root"
 
-- name: "Find uid of user"
-  command: "id -u {{ container_run_as_user }}"
-  register: container_run_as_uid
-  check_mode: false  # Run even in check mode, to avoid fail with --check.
-  changed_when: false
-
 - name: set systemd runtime dir
   set_fact:
-    xdg_runtime_dir: "/run/user/{{ container_run_as_uid.stdout }}"
+    xdg_runtime_dir: "/run/user/{{ user_info.uid }}"
   changed_when: false
 
 - name: set systemd scope to system if needed
   set_fact:
     systemd_scope: system
     service_files_dir: "{{ service_files_dir }}"
-    xdg_runtime_dir: "/run/user/{{ container_run_as_uid.stdout }}"
   when: container_run_as_user == "root"
   changed_when: false
 
@@ -91,10 +88,6 @@
       name: podman
       state: present
     when: not skip_podman_install
-
-  - name: check user exists
-    user:
-      name: "{{ container_run_as_user }}"
 
   - name: Check subuid & subgid
     import_tasks: check_subid.yml
