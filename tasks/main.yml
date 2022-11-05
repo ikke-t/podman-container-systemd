@@ -4,12 +4,13 @@
   user:
     name: "{{ container_run_as_user }}"
   check_mode: true
+  changed_when: false
   register: user_info
 
 - name: Fails if user "{{ container_run_as_user }}" doesn't exist
   fail:
     msg: User "{{ container_run_as_user }}" doesn't exist.
-  when: user_info is changed
+  when: user_info.uic is not defined
 
 - name: prepare rootless stuff if needed
   block:
