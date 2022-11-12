@@ -257,15 +257,17 @@
   - name: Ensure firewalld is installed (rpm-ostree)
     when: ansible_pkg_mgr == "atomic_container"
     block:
-      - name: Ensure firewalld is installed
+      - name: Ensure firewalld is installed (rpm-ostree)
         tags: firewall
         community.general.rpm_ostree_pkg:
           name: firewalld
+        become: true
         register: ostree
 
       - name: Reboot if firewalld was installed
         reboot:
           reboot_timeout: 300
+        become: true
         when: ostree is changed
 
   - name: ensure firewall service is running
