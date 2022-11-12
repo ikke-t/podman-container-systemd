@@ -265,16 +265,6 @@
 - name: configure firewall if container_firewall_ports is defined
   block:
 
-  - name: set firewall ports state to enabled when container state is running
-    set_fact:
-      fw_state: enabled
-    when: container_state == "running"
-
-  - name: disable firewall ports state when container state is not running
-    set_fact:
-      fw_state: disabled
-    when: container_state != "running"
-
   - name: ensure firewalld is installed
     tags: firewall
     package: name=firewalld state=present
@@ -298,17 +288,20 @@
       - ansible_pkg_mgr == "atomic_container"
       - ostree.rc != 77
 
-  - name: ensure firewall service is running
+  - name: Ensure firewall service is running
     tags: firewall
-    service: name=firewalld state=started
+    service: 
+      name: firewalld
+      state: started
+    become: true
 
-  - name: ensure container's exposed ports firewall state
+  - name: Ensure container's exposed ports firewall state
     tags: firewall
     ansible.posix.firewalld:
       port: "{{ item }}"
       permanent: true
       immediate: true
-      state: "{{ fw_state }}"
+      state: "{% if container_state == 'running' %}enabled{% else %}disabled{% endif %}"
     become: true
     with_items: "{{ container_firewall_ports }}"
 
