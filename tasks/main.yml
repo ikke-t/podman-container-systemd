@@ -113,20 +113,6 @@
     changed_when: false
     no_log: true
 
-  - name: running single container, get image Id if it exists and we are root
-    # XXX podman doesn't work through sudo for non root users,
-    # so skip preload if user
-    # https://github.com/containers/libpod/issues/5570
-    # command: podman inspect -f {{.Id}} "{{ container_image }}"
-    command: "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}' {{ item }}"
-    changed_when: false
-    register: pre_pull_id
-    ignore_errors: true
-    when:
-      - _container_image_list | length == 1
-      - container_run_as_user == 'root'
-    loop: "{{ _container_image_list | map(attribute='image') }}"
-
   - name: running single container, ensure we have up to date container image
     containers.podman.podman_image:
       name: "{{ item.image }}"
@@ -142,19 +128,6 @@
       - not (item.image | regex_search ('^localhost/.*'))
     loop: "{{ _container_image_list }}"
     no_log: true
-
-  - name: running single container, get image Id if it exists
-    command:
-      "podman image inspect -f '{{ '{{' }}.Id{{ '}}' }}'  {{ item }}"
-    changed_when: false
-    become: true
-    become_user: "{{ container_run_as_user }}"
-    register: post_pull_id
-    ignore_errors: true
-    when:
-      - _container_image_list | length == 1
-      - container_run_as_user == 'root'
-    loop: "{{ _container_image_list | map(attribute='image') }}"
 
   - name: seems we use several container images, ensure all are up to date
     containers.podman.podman_image:
