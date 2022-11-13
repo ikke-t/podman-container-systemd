@@ -203,8 +203,14 @@
       - container_run_as_user != "root"
       - not user_lingering.stat.exists
 
-  - name: "Ensure volume directories exist for {{ container_name }}"
-    ansible.builtin.include_tasks: create_container_volume.yml
+  - name: Ensure volume directories exist for {{ container_name }}
+    file:
+      path: "{{ item }}"
+      owner: "{{ container_dir_owner | default(container_run_as_user) }}"
+      group: "{{ container_dir_group | default(container_run_as_group) }}"
+      mode: "{{ container_dir_mode | default(omit) }}"
+      state: directory
+    become: true
     loop: "{{ container_run_args | regex_findall('-v ([^:]*)') }}"
     when: 
       - _container_image_list | length == 1
