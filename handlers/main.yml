@@ -9,16 +9,6 @@
     daemon_reload: true
     scope: "{{ systemd_scope }}"
 
-- name: start service
-  become: true
-  become_user: "{{ container_run_as_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
-  systemd:
-    name: "{{ service_name }}"
-    scope: "{{ systemd_scope }}"
-    state: started
-
 - name: restart service
   become: true
   become_user: "{{ container_run_as_user }}"
@@ -28,13 +18,4 @@
     name: "{{ service_name }}"
     scope: "{{ systemd_scope }}"
     state: restarted
-
-- name: enable service
-  become: true
-  become_user: "{{ container_run_as_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
-  systemd:
-    name: "{{ service_name }}"
     enabled: true
-    scope: "{{ systemd_scope }}"

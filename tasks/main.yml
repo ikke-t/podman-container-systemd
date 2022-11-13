@@ -51,10 +51,6 @@
   become: true
   when: container_run_as_user == "root" and service_files_dir == '/usr/local/lib/systemd/system'
 
-- name: check if service file exists already
-  stat:
-    path: "{{ service_files_dir }}/{{ service_name }}"
-  register: service_file_before_template
 
 - name: do tasks when "{{ service_name }}" state is "running"
   block:
@@ -184,9 +180,9 @@
       - container_run_args is defined and container_run_args | length > 0
       - container_pod_yaml is undefined
 
-  - name: "create systemd service file for container: {{ container_name }}"
+  - name: Create systemd service file for {{ container_name }}
     template:
-      src: systemd-service-single.j2
+      src: "{% if _container_image_list | length == 1 %}systemd-service-single.j2{% else %}systemd-service-pod.j2{% endif %}"
       dest: "{{ service_files_dir }}/{{ service_name }}"
       owner: "{{ service_files_owner }}"
       group: "{{ service_files_group }}"
@@ -194,32 +190,8 @@
     become: true
     notify:
       - reload systemctl
-      - start service
-      - enable service
+      - restart service
     register: service_file
-    when: _container_image_list | length == 1
-
-  - name: "create systemd service file for pod: {{ container_name }}"
-    template:
-      src: systemd-service-pod.j2
-      dest: "{{ service_files_dir }}/{{ service_name }}"
-      owner: "{{ service_files_owner }}"
-      group: "{{ service_files_group }}"
-      mode: "{{ service_files_mode }}"
-    notify:
-      - reload systemctl
-      - start service
-      - enable service
-    register: service_file
-    when: _container_image_list | length > 1
-
-  - name: "ensure {{ service_name }} is restarted due config change"
-    debug: msg="config has changed:"
-    changed_when: true
-    notify: restart service
-    when:
-      - service_file_before_template.stat.exists
-      - service_file.changed
 
   - name: ensure auto update is running for images
     become: true
@@ -277,29 +249,19 @@
     become: true
     with_items: "{{ container_firewall_ports }}"
 
-  - name: Force all notified handlers to run at this point
-    meta: flush_handlers
-
   when: container_firewall_ports is defined
 
 
 - name: do cleanup stuff when container_state is "absent"
   block:
 
-  - name: ensure "{{ service_name }}" is disabled at boot
-    become: true
-    become_user: "{{ container_run_as_user }}"
-    # become_method: machinectl
-    environment:
-      XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
-    systemd:
-      name: "{{ service_name }}"
-      enabled: false
-      scope: "{{ systemd_scope }}"
-    when:
-      - service_file_before_template.stat.exists
+  - name: Check if service file exists
+    stat:
+      path: "{{ service_files_dir }}/{{ service_name }}"
+    register: service_file
 
-  - name: ensure "{{ service_name }}" is stopped
+
+  - name: Ensure "{{ service_name }}" is stopped and disabled at boot
     become: true
     become_user: "{{ container_run_as_user }}"
     # become_method: machinectl
@@ -311,7 +273,7 @@
       enabled: false
       scope: "{{ systemd_scope }}"
     when:
-      - service_file_before_template.stat.exists
+      - service_file.stat.exists
 
   - name: clean up systemd service file
     file:
@@ -319,9 +281,6 @@
       state: absent
     become: true
     notify: reload systemctl
-
-  - name: Force all notified handlers to run at this point
-    meta: flush_handlers
 
   - name: Check if user is lingering
     stat:
@@ -342,3 +301,6 @@
     when: container_pod_yaml is defined
 
   when: container_state == "absent"
+
+- name: Force all notified handlers to run at this point
+  meta: flush_handlers
