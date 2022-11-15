@@ -101,7 +101,7 @@
   - name: Convert container_image_list to new form
     set_fact:
       _container_image_list: "{{ _container_image_list + [{'image': item}] }}"
-    loop: "{{ container_image_list }}"
+    with_items: "{{ container_image_list }}"
     when: not (container_image_list | selectattr("image", "defined"))
     changed_when: false
     no_log: true
