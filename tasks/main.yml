@@ -181,7 +181,7 @@
       state: directory
     become: true
     loop: "{{ container_run_args | regex_findall('-v ([^:]*)') }}"
-    when: 
+    when:
       - _container_image_list | length == 1
       - container_run_args is defined and container_run_args | length > 0
       - container_pod_yaml is undefined
@@ -240,7 +240,7 @@
 
   - name: Ensure firewall service is running
     tags: firewall
-    service: 
+    service:
       name: firewalld
       state: started
     become: true
