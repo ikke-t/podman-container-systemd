@@ -53,7 +53,7 @@
   when: container_run_as_user == "root" and service_files_dir == '/usr/local/lib/systemd/system'
 
 
-- name: Do tasks when state is "running" for service "{{ service_name }}"
+- name: "Do tasks when state is \"running\" for service: {{ service_name }}"
   when: container_state == "running"
   block:
     - name: Check for user namespace support in kernel
