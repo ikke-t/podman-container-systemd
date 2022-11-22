@@ -1,3 +1,4 @@
+{{ ansible_managed | comment }}
 [Unit]
 Description={{ container_name }} Podman Container
 {% for unit in systemd_After %}
