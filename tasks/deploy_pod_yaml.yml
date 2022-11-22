@@ -37,22 +37,12 @@
         remote_src: yes
         keep_newer: yes  
 
-    - name: Deploy container configuration
-      ansible.builtin.template:
-        src: "{{ container_pod_yaml_template }}"
-        dest: "{{ container_pod_yaml }}"
-        owner: "{{ container_run_as_user }}"
-        group: "{{ container_run_as_group }}"
-        mode: '0640'
-        validate: /usr/local/bin/kubeval %s
-      notify: Restart service
-    
-- name: Container-pod-yaml without validation
+- name: Deploy container configuration
   ansible.builtin.template:
     src: "{{ container_pod_yaml_template }}"
     dest: "{{ container_pod_yaml }}"
     owner: "{{ container_run_as_user }}"
     group: "{{ container_run_as_group }}"
     mode: '0640'
-  notify: Restart service
-  when: not container_pod_yaml_template_validation
+    validate: "{{ container_pod_yaml_template_validation | ternary('/usr/local/bin/kubeval %s', omit) }}"
+  register: container_pod_yaml_copy

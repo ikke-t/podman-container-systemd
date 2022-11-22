@@ -8,14 +8,3 @@
   ansible.builtin.systemd:
     daemon_reload: true
     scope: "{{ systemd_scope }}"
-
-- name: Restart service
-  become: true
-  become_user: "{{ container_run_as_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
-  ansible.builtin.systemd:
-    name: "{{ service_name }}"
-    scope: "{{ systemd_scope }}"
-    state: restarted
-    enabled: true
