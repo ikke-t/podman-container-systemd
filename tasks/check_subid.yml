@@ -1,21 +1,21 @@
 ---
 
-- name: check if user is in subuid file
-  find:
+- name: Check if user is in subuid file
+  ansible.builtin.find:
     path: /etc/subuid
     contains: '^{{ container_run_as_user }}:.*$'
   register: uid_line_found
   when: container_run_as_user != 'root'
 
-- name: check if group is in subgid file
-  find:
+- name: Check if group is in subgid file
+  ansible.builtin.find:
     path: /etc/subgid
     contains: '^{{ container_run_as_group }}:.*$'
   register: gid_line_found
   when: container_run_as_group != 'root'
 
-- name: ensure user is in subuid file, if it was missing
-  lineinfile:
+- name: Ensure user is in subuid file, if it was missing
+  ansible.builtin.lineinfile:
     path: /etc/subuid
     regexp: "^{{ container_run_as_user }}:.*"
     line: "{{ container_run_as_user }}:165536:65536"
@@ -25,8 +25,8 @@
     group: root
   when: container_run_as_user != 'root' and not uid_line_found.matched
 
-- name: ensure group is in subgid file, if it was missing
-  lineinfile:
+- name: Ensure group is in subgid file, if it was missing
+  ansible.builtin.lineinfile:
     path: /etc/subgid
     regexp: "^{{ container_run_as_group }}:.*"
     line: "{{ container_run_as_group }}:165536:65536"

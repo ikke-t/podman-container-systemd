@@ -15,7 +15,7 @@ systemd_scope: system
 systemd_TimeoutStartSec: 15
 systemd_RestartSec: 30
 systemd_tempdir: "{{ '/tmp' if ansible_os_family == 'RedHat' and
-  ansible_distribution_major_version|int == 7 else '%T' }}"
+  ansible_distribution_major_version | int == 7 else '%T' }}"
 container_run_as_user: root
 container_run_as_group: root
 container_stop_timeout: 15

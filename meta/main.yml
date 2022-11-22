@@ -5,15 +5,15 @@ galaxy_info:
   description: Role sets up container(s) to run on host with help of systemd.
   company: Red Hat
   license: GPLv3
-  min_ansible_version: 2.4
+  min_ansible_version: "2.4"
   platforms:
     - name: Debian
       versions:
         - buster
     - name: EL
       versions:
-        - 8
-        - 7
+        - "8"
+        - "7"
     - name: Fedora
       versions:
         - all
@@ -40,4 +40,6 @@ dependencies:
       ansible_distribution_version is version('21.04', '<'))
 
 collections:
+  - ansible.posix
+  - community.general
   - containers.podman
