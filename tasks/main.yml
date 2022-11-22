@@ -90,9 +90,10 @@
     - name: Check subuid & subgid
       ansible.builtin.import_tasks: check_subid.yml
 
-    - name: Ensure empty internal variable _container_image_list
+    - name: Set internal variables
       ansible.builtin.set_fact:
         _container_image_list: []
+        _service_systemd_state: started
       changed_when: false
 
     - name: Convert container_image_list to new form
@@ -116,7 +117,6 @@
         force: true
         username: "{{ item.user | default(container_image_user) | default(omit) }}"
         password: "{{ item.password | default(container_image_password) | default(omit) }}"
-      notify: Restart service
       become: true
       become_user: "{{ container_run_as_user }}"
       when:
@@ -125,6 +125,7 @@
         - not (item.image | regex_search ('^localhost/.*'))
       loop: "{{ _container_image_list }}"
       no_log: true
+      register: podman_image_pull
 
     - name: Seems we use several container images, ensure all are up to date
       containers.podman.podman_image:
@@ -195,10 +196,27 @@
         group: "{{ service_files_group }}"
         mode: "{{ service_files_mode }}"
       become: true
-      notify:
-        - Reload systemctl
-        - Restart service
       register: service_file
+
+    - name: Set variable to restart service
+      ansible.builtin.set_fact:
+        _service_systemd_state: restarted
+      when: >-
+        podman_image_pull is changed 
+        or service_file is changed 
+        or (container_pod_yaml_copy is defined and container_pod_yaml_copy is changed)
+
+    - name: Ensure service is enabled and {{ _service_systemd_state }}
+      become: true
+      become_user: "{{ container_run_as_user }}"
+      environment:
+        XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        scope: "{{ systemd_scope }}"
+        state: "{{ _service_systemd_state }}"
+        enabled: true
+        daemon_reload: "{{ service_file is changed }}"
 
     - name: Ensure auto update is running for images
       become: true
@@ -304,7 +322,3 @@
       path: "{{ container_pod_yaml }}"
       state: absent
     when: container_pod_yaml is defined
-
-
-- name: Force all notified handlers to run at this point
-  ansible.builtin.meta: flush_handlers
