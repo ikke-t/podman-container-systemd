@@ -132,6 +132,8 @@ add this label to container_cmd_args: ```--label "io.containers.autoupdate=image
 Never use `ansible.builtin.import_role` to execute this role if you intend to use it more
 than once per playbook, or you will fall in
 [this anti-pattern](https://medium.com/opsops/ansible-anti-pattern-import-role-task-with-task-level-vars-a9f5c752c9c3).
+Alternatively, you could use the "roles" block on top level of play and specify the variables
+[without "vars" block](https://medium.com/opsops/role-parameters-in-ansible-946386f32e77).
 
 Dependencies
 ------------

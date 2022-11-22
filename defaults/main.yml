@@ -35,6 +35,9 @@ service_name: "{{ container_name }}-container-pod-{{ container_run_as_user }}.se
 # to sepped up you can disable always checking if podman is installed.
 skip_podman_install: false
 
+# Usually not needed since useradd adds subuid and subgid automatically
+skip_subgid_change: true
+
 podman_dependencies_rootless:
   - fuse-overlayfs
   - slirp4netns
