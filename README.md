@@ -76,7 +76,7 @@ container_image_list:
 - ```container_name``` - Identify the container in systemd and podman commands.
   Systemd service file be named container_name--container-pod.service. This can be overwritten with service_name.
 - ```container_run_args``` - Anything you pass to podman, except for the name
-  and image while running single container. Not used for pod.
+  and image while running single container. Not used for pod. Can be a string or a list of strings.
 - ```container_cmd_args``` - Any command and arguments passed to podman-run after specifying the image name. Not used for pod.
 - ```container_run_as_user``` - Which user should systemd run container as.
   Defaults to root.

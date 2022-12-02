@@ -28,7 +28,7 @@ User={{ container_run_as_user }}
 {% endif %}
 
 ExecStart=/usr/bin/podman run --name {{ container_name }} \
-  {{ container_run_args }} \
+  {{ _container_run_args }} \
   --conmon-pidfile  {{ pidfile }} --cidfile {{ cidfile }} \
   {{ _container_image_list | map(attribute='image') | first }} {% if container_cmd_args is defined %} \
   {{ container_cmd_args }} {% endif %}
