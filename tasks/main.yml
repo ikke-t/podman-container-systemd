@@ -191,7 +191,7 @@
         mode: "{{ container_dir_mode | default(omit) }}"
         state: directory
       become: true
-      loop: "{{ _container_run_args | regex_findall('-v ([^:]*)') }}"
+      loop: "{{ _container_run_args | regex_findall('-v \"*([^:]*)') }}"
       when: 
         - _container_image_list | length == 1
         - _container_run_args | length > 0
