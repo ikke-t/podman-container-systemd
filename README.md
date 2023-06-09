@@ -1,6 +1,12 @@
 podman-container-systemd
 ========================
 
+**NOTE: While this hopefully still works, note that further development
+happens in the new
+[linux system roles podman project](https://github.com/linux-system-roles/podman).
+Try that, it is under active development.** BR Ikke, thanks for all the
+contributors here throughout the years!
+
 Role sets up container(s) to be run on host with help of systemd.
 [Podman](https://podman.io/) implements container events but does not control
 or keep track of the life-cycle. That's job of external tool as
